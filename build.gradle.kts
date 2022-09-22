@@ -12,7 +12,7 @@ repositories {
 }
 
 group = "io.github.kscripting"
-version = "4.2.0"
+version = "0.5.0-SNAPSHOT"
 
 sourceSets {
     create("integration") {
@@ -77,8 +77,6 @@ tasks.test {
     useJUnitPlatform()
 }
 
-val launcherClassName: String = "kscript.app.KscriptKt"
-
 dependencies {
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlinVersion")
     implementation("org.jetbrains.kotlin:kotlin-reflect:$kotlinVersion")
@@ -88,9 +86,9 @@ dependencies {
     implementation("org.jetbrains.kotlin:kotlin-scripting-jvm:$kotlinVersion")
     implementation("org.jetbrains.kotlin:kotlin-scripting-dependencies-maven-all:$kotlinVersion")
     implementation("io.arrow-kt:arrow-core:1.1.2")
+    implementation("org.apache.commons:commons-lang3:3.12.0")
 
     implementation("org.slf4j:slf4j-nop:2.0.0")
-
 
     testImplementation("org.junit.platform:junit-platform-suite-engine:1.9.0")
     testImplementation("org.junit.platform:junit-platform-suite-api:1.9.0")
@@ -101,17 +99,6 @@ dependencies {
     testImplementation("io.mockk:mockk:1.12.4")
 
     testImplementation(kotlin("script-runtime"))
-}
-
-val jar: Task by tasks.getting {
-}
-
-val assemble: Task by tasks.getting {
-    dependsOn(packageKscriptDistribution)
-}
-
-val test: Task by tasks.getting {
-    inputs.dir("${project.projectDir}/test/resources")
 }
 
 publishing {
