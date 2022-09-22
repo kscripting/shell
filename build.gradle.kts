@@ -30,6 +30,13 @@ configurations {
     get("integrationImplementation").apply { extendsFrom(get("testImplementation")) }
 }
 
+
+tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().all {
+    kotlinOptions {
+        jvmTarget = "1.8"
+    }
+}
+
 tasks.create<Test>("integration") {
     val itags = System.getProperty("includeTags") ?: ""
     val etags = System.getProperty("excludeTags") ?: ""
