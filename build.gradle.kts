@@ -30,10 +30,15 @@ configurations {
     get("integrationImplementation").apply { extendsFrom(get("testImplementation")) }
 }
 
-
 java {
     toolchain {
         languageVersion.set(JavaLanguageVersion.of(8))
+    }
+}
+
+tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().all {
+    kotlinOptions {
+        jvmTarget = "1.8"
     }
 }
 
