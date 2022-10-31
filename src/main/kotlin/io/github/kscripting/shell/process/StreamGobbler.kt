@@ -1,20 +1,13 @@
 package io.github.kscripting.shell.process
 
 import java.io.InputStream
+import java.io.PrintStream
 
-class StreamGobbler(private val inputStream: InputStream) {
-    private val stringBuilder = StringBuilder()
+class StreamGobbler(
+    private val inputStream: InputStream,
+    private val printStream: List<PrintStream>,
+) {
     private lateinit var thread: Thread
-
-    val output: String
-        get() {
-            if (!this::thread.isInitialized) {
-                return ""
-            }
-
-            thread.join()
-            return stringBuilder.toString()
-        }
 
     fun start(): StreamGobbler {
         thread = Thread { readInputStreamSequentially() }
@@ -23,13 +16,20 @@ class StreamGobbler(private val inputStream: InputStream) {
         return this
     }
 
+    fun finish() {
+        thread.join()
+    }
+
     private fun readInputStreamSequentially() {
         val buffer = ByteArray(1024)
         var length: Int
 
         while (inputStream.read(buffer).also { length = it } != -1) {
             val readContent = String(buffer, 0, length)
-            stringBuilder.append(readContent)
+
+            printStream.forEach {
+                it.print(readContent)
+            }
         }
     }
 }
