@@ -17,16 +17,12 @@ object ProcessRunner {
         workingDirectory: OsPath? = null,
         envAdjuster: EnvAdjuster = {},
         waitTimeMinutes: Int = 10,
+        inheritInput: Boolean = false,
         outPrinter: List<PrintStream> = DEFAULT_OUT_PRINTERS,
         errPrinter: List<PrintStream> = DEFAULT_ERR_PRINTERS,
     ): ProcessResult {
         return runProcess(
-            command.asList(),
-            workingDirectory,
-            envAdjuster,
-            waitTimeMinutes,
-            outPrinter,
-            errPrinter
+            command.asList(), workingDirectory, envAdjuster, waitTimeMinutes, inheritInput, outPrinter, errPrinter
         )
     }
 
@@ -35,14 +31,18 @@ object ProcessRunner {
         workingDirectory: OsPath? = null,
         envAdjuster: EnvAdjuster = {},
         waitTimeMinutes: Int = 10,
+        inheritInput: Boolean = false,
         outPrinter: List<PrintStream> = DEFAULT_OUT_PRINTERS,
         errPrinter: List<PrintStream> = DEFAULT_ERR_PRINTERS,
     ): ProcessResult {
         try {
             // simplify with https://stackoverflow.com/questions/35421699/how-to-invoke-external-command-from-within-kotlin-code
-            val process = ProcessBuilder(command).directory(workingDirectory?.toNativeFile()).apply {
-                envAdjuster(environment())
-            }.start()
+            val process = ProcessBuilder(command)
+                .directory(workingDirectory?.toNativeFile())
+                .redirectInput(if (inheritInput) ProcessBuilder.Redirect.INHERIT else ProcessBuilder.Redirect.PIPE)
+                .apply {
+                    envAdjuster(environment())
+                }.start()
 
             // we need to gobble the streams to prevent that the internal pipes hit their respective buffer limits, which
             // would lock the sub-process execution (see see https://github.com/kscripting/kscript/issues/55

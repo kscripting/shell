@@ -20,6 +20,7 @@ object ShellExecutor {
         workingDirectory: OsPath? = null,
         envAdjuster: EnvAdjuster = {},
         waitTimeMinutes: Int = 10,
+        inheritInput: Boolean = false,
         outPrinter: List<PrintStream> = emptyList(),
         errPrinter: List<PrintStream> = emptyList()
     ): GobbledProcessResult {
@@ -38,6 +39,7 @@ object ShellExecutor {
                     workingDirectory,
                     envAdjuster,
                     waitTimeMinutes,
+                    inheritInput,
                     outPrinter + additionalOutPrinter,
                     errPrinter + additionalErrPrinter
                 )
@@ -53,6 +55,7 @@ object ShellExecutor {
         workingDirectory: OsPath? = null,
         envAdjuster: EnvAdjuster = {},
         waitTimeMinutes: Int = 10,
+        inheritInput: Boolean = false,
         outPrinter: List<PrintStream> = DEFAULT_OUT_PRINTERS,
         errPrinter: List<PrintStream> = DEFAULT_ERR_PRINTERS
     ): ProcessResult {
@@ -65,6 +68,7 @@ object ShellExecutor {
                 workingDirectory = workingDirectory,
                 envAdjuster = envAdjuster,
                 waitTimeMinutes = waitTimeMinutes,
+                inheritInput = inheritInput,
                 outPrinter = outPrinter,
                 errPrinter = errPrinter
             )
@@ -77,6 +81,7 @@ object ShellExecutor {
             workingDirectory = workingDirectory,
             envAdjuster = envAdjuster,
             waitTimeMinutes = waitTimeMinutes,
+            inheritInput = inheritInput,
             outPrinter = outPrinter,
             errPrinter = errPrinter
         )

@@ -7,17 +7,19 @@ class StreamGobbler(
     private val inputStream: InputStream,
     private val printStream: List<PrintStream>,
 ) {
-    private lateinit var thread: Thread
+    private var thread: Thread? = null
 
     fun start(): StreamGobbler {
+        thread?.join()
         thread = Thread { readInputStreamSequentially() }
-        thread.start()
+        thread?.start()
 
         return this
     }
 
     fun finish() {
-        thread.join()
+        thread?.join()
+        thread = null
     }
 
     private fun readInputStreamSequentially() {
