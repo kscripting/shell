@@ -34,6 +34,9 @@ java {
     toolchain {
         languageVersion.set(JavaLanguageVersion.of(8))
     }
+
+    withJavadocJar()
+    withSourcesJar()
 }
 
 tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().all {
