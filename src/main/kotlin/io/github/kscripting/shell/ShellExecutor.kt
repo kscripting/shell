@@ -1,9 +1,8 @@
 package io.github.kscripting.shell
 
-import io.github.kscripting.shell.model.GobbledProcessResult
+import io.github.kscripting.shell.model.ProcessResult
 import io.github.kscripting.shell.model.OsPath
 import io.github.kscripting.shell.model.OsType
-import io.github.kscripting.shell.model.ProcessResult
 import io.github.kscripting.shell.process.EnvAdjuster
 import io.github.kscripting.shell.process.ProcessRunner
 import io.github.kscripting.shell.process.ProcessRunner.DEFAULT_ERR_PRINTERS
@@ -23,13 +22,13 @@ object ShellExecutor {
         inheritInput: Boolean = false,
         outPrinter: List<PrintStream> = emptyList(),
         errPrinter: List<PrintStream> = emptyList()
-    ): GobbledProcessResult {
+    ): ProcessResult {
         val outStream = ByteArrayOutputStream(1024)
         val errStream = ByteArrayOutputStream(1024)
 
         val utf8 = StandardCharsets.UTF_8.name()
 
-        var result: ProcessResult
+        var result: Int
 
         PrintStream(outStream, true, utf8).use { additionalOutPrinter ->
             PrintStream(errStream, true, utf8).use { additionalErrPrinter ->
@@ -46,7 +45,7 @@ object ShellExecutor {
             }
         }
 
-        return GobbledProcessResult(result.command, result.exitCode, outStream.toString(utf8), errStream.toString(utf8))
+        return ProcessResult(result, outStream.toString(utf8), errStream.toString(utf8))
     }
 
     fun eval(
@@ -58,7 +57,7 @@ object ShellExecutor {
         inheritInput: Boolean = false,
         outPrinter: List<PrintStream> = DEFAULT_OUT_PRINTERS,
         errPrinter: List<PrintStream> = DEFAULT_ERR_PRINTERS
-    ): ProcessResult {
+    ): Int {
         //NOTE: cmd is an argument to shell (bash/cmd), so it should stay not split by whitespace as a single string
         if (osType == OsType.WINDOWS) {
             // if the first character in args in `cmd /c <args>` is a quote, cmd will remove it as well as the

@@ -12,18 +12,16 @@ repositories {
 }
 
 group = "io.github.kscripting"
-version = "0.5.1"
+version = "0.6.0-SNAPSHOT"
 
 sourceSets {
     create("integration") {
-//        test {  //With that idea can understand that 'integration' is test source set and do not complain about test
-//        names starting with upper case, but it doesn't compile correctly with it
         java.srcDir("$projectDir/src/integration/kotlin")
         resources.srcDir("$projectDir/src/integration/resources")
+
         compileClasspath += main.get().output + test.get().output
         runtimeClasspath += main.get().output + test.get().output
     }
-//    }
 }
 
 configurations {
@@ -43,9 +41,10 @@ tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().all {
     kotlinOptions {
         jvmTarget = "1.8"
     }
+
 }
 
-tasks.create<Test>("integration") {
+tasks.create<Test>("integrationTest") {
     val itags = System.getProperty("includeTags") ?: ""
     val etags = System.getProperty("excludeTags") ?: ""
 
@@ -92,30 +91,6 @@ tasks.test {
     useJUnitPlatform()
 }
 
-dependencies {
-    implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlinVersion")
-    implementation("org.jetbrains.kotlin:kotlin-reflect:$kotlinVersion")
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.4")
-
-    implementation("org.jetbrains.kotlin:kotlin-scripting-common:$kotlinVersion")
-    implementation("org.jetbrains.kotlin:kotlin-scripting-jvm:$kotlinVersion")
-    implementation("org.jetbrains.kotlin:kotlin-scripting-dependencies-maven-all:$kotlinVersion")
-    implementation("io.arrow-kt:arrow-core:1.1.2")
-    implementation("org.apache.commons:commons-lang3:3.12.0")
-
-    implementation("org.slf4j:slf4j-nop:2.0.4")
-
-    testImplementation("org.junit.platform:junit-platform-suite-engine:1.9.0")
-    testImplementation("org.junit.platform:junit-platform-suite-api:1.9.0")
-    testImplementation("org.junit.platform:junit-platform-suite-commons:1.9.0")
-    testImplementation("org.junit.jupiter:junit-jupiter-engine:5.9.0")
-    testImplementation("org.junit.jupiter:junit-jupiter-params:5.9.0")
-    testImplementation("com.willowtreeapps.assertk:assertk-jvm:0.25")
-    testImplementation("io.mockk:mockk:1.13.2")
-
-    testImplementation(kotlin("script-runtime"))
-}
-
 publishing {
     publications {
         create<MavenPublication>("mavenJava") {
@@ -123,7 +98,7 @@ publishing {
             from(components["java"])
 
             pom {
-                name.set("kscript")
+                name.set("shell")
                 description.set("Shell - library for interoperability with different system shells")
                 url.set("https://github.com/kscripting/shell")
 
@@ -165,4 +140,28 @@ publishing {
 
 signing {
     sign(publishing.publications["mavenJava"])
+}
+
+dependencies {
+    implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlinVersion")
+    implementation("org.jetbrains.kotlin:kotlin-reflect:$kotlinVersion")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.4")
+
+    implementation("org.jetbrains.kotlin:kotlin-scripting-common:$kotlinVersion")
+    implementation("org.jetbrains.kotlin:kotlin-scripting-jvm:$kotlinVersion")
+    implementation("org.jetbrains.kotlin:kotlin-scripting-dependencies-maven-all:$kotlinVersion")
+    implementation("io.arrow-kt:arrow-core:1.1.2")
+    implementation("org.apache.commons:commons-lang3:3.12.0")
+
+    implementation("org.slf4j:slf4j-nop:2.0.5")
+
+    testImplementation("org.junit.platform:junit-platform-suite-engine:1.9.0")
+    testImplementation("org.junit.platform:junit-platform-suite-api:1.9.0")
+    testImplementation("org.junit.platform:junit-platform-suite-commons:1.9.0")
+    testImplementation("org.junit.jupiter:junit-jupiter-engine:5.9.0")
+    testImplementation("org.junit.jupiter:junit-jupiter-params:5.9.0")
+    testImplementation("com.willowtreeapps.assertk:assertk-jvm:0.25")
+    testImplementation("io.mockk:mockk:1.13.2")
+
+    testImplementation(kotlin("script-runtime"))
 }

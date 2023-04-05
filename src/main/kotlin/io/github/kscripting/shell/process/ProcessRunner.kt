@@ -1,5 +1,6 @@
 package io.github.kscripting.shell.process
 
+import io.github.kscripting.shell.model.CommandTimeoutException
 import io.github.kscripting.shell.model.OsPath
 import io.github.kscripting.shell.model.ProcessResult
 import io.github.kscripting.shell.model.toNativeFile
@@ -20,7 +21,7 @@ object ProcessRunner {
         inheritInput: Boolean = false,
         outPrinter: List<PrintStream> = DEFAULT_OUT_PRINTERS,
         errPrinter: List<PrintStream> = DEFAULT_ERR_PRINTERS,
-    ): ProcessResult {
+    ): Int {
         return runProcess(
             command.asList(), workingDirectory, envAdjuster, waitTimeMinutes, inheritInput, outPrinter, errPrinter
         )
@@ -34,7 +35,7 @@ object ProcessRunner {
         inheritInput: Boolean = false,
         outPrinter: List<PrintStream> = DEFAULT_OUT_PRINTERS,
         errPrinter: List<PrintStream> = DEFAULT_ERR_PRINTERS,
-    ): ProcessResult {
+    ): Int {
         try {
             // simplify with https://stackoverflow.com/questions/35421699/how-to-invoke-external-command-from-within-kotlin-code
             val process = ProcessBuilder(command)
@@ -56,10 +57,10 @@ object ProcessRunner {
             errorStreamReader.finish()
 
             if (!exitedNormally) {
-                throw IllegalStateException("Command has timed out after $waitTimeMinutes minutes.")
+                throw CommandTimeoutException("Command has timed out after $waitTimeMinutes minutes.")
             }
 
-            return ProcessResult(command.joinToString(" "), process.exitValue())
+            return process.exitValue()
         } catch (e: Exception) {
             throw IllegalStateException("Error executing command: '$command'", e)
         }

@@ -1,0 +1,15 @@
+= shell 0.6.0-SNAPSHOT features:
+
+* Move shell test classes from kscript to the library
+* dry-run, with test output provider
+* printing of commands
+* Command for encapsulating commands?
+* Throw on exitCode != 0 and/or skipErrors
+* verifier for different types like in assertk/assertj
+* log masking (shallow - in printout and deep in stderr/stdout); masking list of the words; is the design with Streams valid for that?
+* Remove command from result
+* Encoding of special characters in output (\n, \, etc.)
+* Interface dla ShellExecutor (ten sam dla DryRunResultProvider)
+* Printing Output of commands
+* Possibility of parametrization of commands (properties) + masking (for tests and interoperability)
+* Silent mode ()
