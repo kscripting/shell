@@ -61,10 +61,12 @@ object ShellExecutor {
     ): ProcessResult {
         //NOTE: cmd is an argument to shell (bash/cmd), so it should stay not split by whitespace as a single string
         if (osType == OsType.WINDOWS) {
+            // if the first character in args in `cmd /c <args>` is a quote, cmd will remove it as well as the
+            // last quote character within args before processing the term, which removes our quotes.
             return ProcessRunner.runProcess(
                 "cmd",
                 "/c",
-                command,
+                " $command",
                 workingDirectory = workingDirectory,
                 envAdjuster = envAdjuster,
                 waitTimeMinutes = waitTimeMinutes,
