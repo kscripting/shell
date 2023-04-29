@@ -1,0 +1,3 @@
+= shell 0.6 features:
+
+* Use https://github.com/JetBrains/pty4j[PTY4j] instead of ProcessBuilder to read color codes from input and append them to output
