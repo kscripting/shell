@@ -12,7 +12,7 @@ repositories {
 }
 
 group = "io.github.kscripting"
-version = "0.5.1"
+version = "0.5.2"
 
 sourceSets {
     create("integration") {
@@ -92,30 +92,6 @@ tasks.test {
     useJUnitPlatform()
 }
 
-dependencies {
-    implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlinVersion")
-    implementation("org.jetbrains.kotlin:kotlin-reflect:$kotlinVersion")
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.4")
-
-    implementation("org.jetbrains.kotlin:kotlin-scripting-common:$kotlinVersion")
-    implementation("org.jetbrains.kotlin:kotlin-scripting-jvm:$kotlinVersion")
-    implementation("org.jetbrains.kotlin:kotlin-scripting-dependencies-maven-all:$kotlinVersion")
-    implementation("io.arrow-kt:arrow-core:1.1.2")
-    implementation("org.apache.commons:commons-lang3:3.12.0")
-
-    implementation("org.slf4j:slf4j-nop:2.0.4")
-
-    testImplementation("org.junit.platform:junit-platform-suite-engine:1.9.0")
-    testImplementation("org.junit.platform:junit-platform-suite-api:1.9.0")
-    testImplementation("org.junit.platform:junit-platform-suite-commons:1.9.0")
-    testImplementation("org.junit.jupiter:junit-jupiter-engine:5.9.0")
-    testImplementation("org.junit.jupiter:junit-jupiter-params:5.9.0")
-    testImplementation("com.willowtreeapps.assertk:assertk-jvm:0.25")
-    testImplementation("io.mockk:mockk:1.13.2")
-
-    testImplementation(kotlin("script-runtime"))
-}
-
 publishing {
     publications {
         create<MavenPublication>("mavenJava") {
@@ -165,4 +141,28 @@ publishing {
 
 signing {
     sign(publishing.publications["mavenJava"])
+}
+
+dependencies {
+    implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlinVersion")
+    implementation("org.jetbrains.kotlin:kotlin-reflect:$kotlinVersion")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.4")
+
+    implementation("org.jetbrains.kotlin:kotlin-scripting-common:$kotlinVersion")
+    implementation("org.jetbrains.kotlin:kotlin-scripting-jvm:$kotlinVersion")
+    implementation("org.jetbrains.kotlin:kotlin-scripting-dependencies-maven-all:$kotlinVersion")
+    implementation("io.arrow-kt:arrow-core:1.1.2")
+    implementation("org.apache.commons:commons-lang3:3.12.0")
+
+    implementation("org.slf4j:slf4j-nop:2.0.4")
+
+    testImplementation("org.junit.platform:junit-platform-suite-engine:1.9.0")
+    testImplementation("org.junit.platform:junit-platform-suite-api:1.9.0")
+    testImplementation("org.junit.platform:junit-platform-suite-commons:1.9.0")
+    testImplementation("org.junit.jupiter:junit-jupiter-engine:5.9.0")
+    testImplementation("org.junit.jupiter:junit-jupiter-params:5.9.0")
+    testImplementation("com.willowtreeapps.assertk:assertk-jvm:0.25")
+    testImplementation("io.mockk:mockk:1.13.2")
+
+    testImplementation(kotlin("script-runtime"))
 }

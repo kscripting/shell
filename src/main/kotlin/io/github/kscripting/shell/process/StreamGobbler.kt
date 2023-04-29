@@ -1,12 +1,16 @@
 package io.github.kscripting.shell.process
 
+import java.io.BufferedReader
 import java.io.InputStream
+import java.io.InputStreamReader
 import java.io.PrintStream
 
+
 class StreamGobbler(
-    private val inputStream: InputStream,
+    inputStream: InputStream,
     private val printStream: List<PrintStream>,
 ) {
+    private val reader: BufferedReader = BufferedReader(InputStreamReader(inputStream, "UTF8"))
     private var thread: Thread? = null
 
     fun start(): StreamGobbler {
@@ -23,14 +27,14 @@ class StreamGobbler(
     }
 
     private fun readInputStreamSequentially() {
-        val buffer = ByteArray(1024)
+        val charArray = CharArray(1024)
         var length: Int
 
-        while (inputStream.read(buffer).also { length = it } != -1) {
-            val readContent = String(buffer, 0, length)
+        while (reader.read(charArray).also { length = it } != -1) {
+            val content = String(charArray, 0, length)
 
             printStream.forEach {
-                it.print(readContent)
+                it.print(content)
             }
         }
     }
