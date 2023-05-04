@@ -13,3 +13,4 @@
 * Printing Output of commands
 * Possibility of parametrization of commands (properties) + masking (for tests and interoperability)
 * Silent mode ()
+* Use https://github.com/JetBrains/pty4j[PTY4j] instead of ProcessBuilder to read color codes from input and append them to output (https://stackoverflow.com/questions/45789329/java-capture-process-output-with-color)
