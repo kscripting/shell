@@ -30,9 +30,11 @@ fun OsPath.toNativeFile(): File = toNativePath().toFile()
 
 // OsPath operations
 
-fun OsPath.exists() = toNativePath().exists()
+fun OsPath.exists(): Boolean = toNativePath().exists()
 
 fun OsPath.createDirectories(): OsPath = OsPath.createOrThrow(nativeType, toNativePath().createDirectories().pathString)
+fun OsPath.deleteRecursively(): Boolean = this.toNativeFile().deleteRecursively()
+fun OsPath.readBytes(): ByteArray = this.toNativeFile().readBytes()
 
 fun OsPath.copyTo(target: OsPath, overwrite: Boolean = false): OsPath =
     OsPath.createOrThrow(nativeType, toNativePath().copyTo(target.toNativePath(), overwrite).pathString)

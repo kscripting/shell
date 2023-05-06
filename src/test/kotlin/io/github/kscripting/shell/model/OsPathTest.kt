@@ -322,4 +322,21 @@ class OsPathTest {
             OsPath.createOrThrow(OsType.MSYS, "../home/admin/.kscript").convert(OsType.WINDOWS).stringPath()
         ).isEqualTo("..\\home\\admin\\.kscript")
     }
+
+    // ************************************* Shorthand for creating composite paths ************************************
+
+    @Test
+    fun `Add paths`() {
+        val p = OsPath.createOrThrow(OsType.MSYS, "/c/home")
+        val p1 = OsPath.createOrThrow(OsType.MSYS, "admin/.kscript")
+
+        assertThat(p / p1).isEqualTo(OsPath.createOrThrow(OsType.MSYS, "/c/home/admin/.kscript"))
+
+        val test = OsPath.createOrThrow(OsType.LINUX, "/c/home/admin/.kscript")
+        println(test)
+        println(test.osType)
+        println(test.pathType)
+        println(test.pathParts)
+        println(test.pathSeparator)
+    }
 }

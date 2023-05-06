@@ -6,6 +6,13 @@ import arrow.core.right
 
 //Path representation for different OSes
 data class OsPath(val osType: OsType, val pathType: PathType, val pathParts: List<String>, val pathSeparator: Char) {
+    operator fun div(osPath: OsPath): OsPath {
+        return this.resolve(osPath)
+    }
+
+    operator fun div(path: String): OsPath {
+        return this.resolve(path)
+    }
 
     fun resolve(vararg pathParts: String): OsPath {
         return resolve(createOrThrow(osType, pathParts.joinToString(pathSeparator.toString())))
