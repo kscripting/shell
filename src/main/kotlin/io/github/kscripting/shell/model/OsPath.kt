@@ -143,8 +143,22 @@ data class OsPath(val osType: OsType, val pathType: PathType, val pathParts: Lis
             }
         }
 
+        fun createOrThrow(root: String, vararg pathParts: String): OsPath {
+            return when (val result = internalCreate(OsType.native, root, *pathParts)) {
+                is Either.Right -> result.value
+                is Either.Left -> throw IllegalArgumentException(result.value)
+            }
+        }
+
         fun create(osType: OsType, root: String, vararg pathParts: String): OsPath? {
             return when (val result = internalCreate(osType, root, *pathParts)) {
+                is Either.Right -> result.value
+                is Either.Left -> null
+            }
+        }
+
+        fun create(root: String, vararg pathParts: String): OsPath? {
+            return when (val result = internalCreate(OsType.native, root, *pathParts)) {
                 is Either.Right -> result.value
                 is Either.Left -> null
             }
