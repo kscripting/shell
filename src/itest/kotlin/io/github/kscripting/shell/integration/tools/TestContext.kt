@@ -3,6 +3,7 @@ package io.github.kscripting.shell.integration.tools
 import io.github.kscripting.shell.ShellExecutor
 import io.github.kscripting.shell.model.*
 import io.github.kscripting.shell.process.EnvAdjuster
+import io.github.kscripting.shell.util.Sanitizer
 
 object TestContext {
     private val osType: OsType = OsType.find(System.getProperty("osType")) ?: OsType.native
@@ -16,7 +17,10 @@ object TestContext {
     private val pathSeparator: String = if (osType.isWindowsLike() || osType.isPosixHostedOnWindows()) ";" else ":"
     private val envPath: String = "${execPath.convert(osType)}$pathSeparator$systemPath"
 
-    val nl: String = System.getProperty("line.separator")
+    private val inputSanitizer = Sanitizer(
+        listOf("[bs]" to "\\", "[nl]" to System.getProperty("line.separator"), "[tb]" to "\t")
+    )
+
     val projectDir: String = projectPath.convert(osType).stringPath()
 
     init {
@@ -24,7 +28,7 @@ object TestContext {
         println("nativeType     : $nativeType")
         println("projectDir     : $projectDir")
         println("execDir        : ${execPath.convert(osType)}")
-        println("Kotlin version : ${ShellExecutor.evalAndGobble(osType, "kotlin -version", null)}")
+        println("Kotlin version : ${ShellExecutor.evalAndGobble(osType, "kotlin -version", null).stdout}")
 
         execPath.createDirectories()
     }
@@ -46,7 +50,13 @@ object TestContext {
             envAdjuster(map)
         }
 
-        return ShellExecutor.evalAndGobble(osType, newCommand, null, ::internalEnvAdjuster)
+        return ShellExecutor.evalAndGobble(
+            osType,
+            newCommand,
+            null,
+            ::internalEnvAdjuster,
+            inputSanitizer = inputSanitizer
+        )
     }
 
     fun copyToExecutablePath(source: String) {
@@ -56,4 +66,6 @@ object TestContext {
         sourceFile.copyTo(targetFile, overwrite = true)
         targetFile.setExecutable(true)
     }
+
+    fun execPath(): OsPath = execPath
 }

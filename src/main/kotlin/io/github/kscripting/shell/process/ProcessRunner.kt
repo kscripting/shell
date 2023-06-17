@@ -2,8 +2,9 @@ package io.github.kscripting.shell.process
 
 import io.github.kscripting.shell.model.CommandTimeoutException
 import io.github.kscripting.shell.model.OsPath
-import io.github.kscripting.shell.model.ProcessResult
 import io.github.kscripting.shell.model.toNativeFile
+import io.github.kscripting.shell.util.Sanitizer
+import io.github.kscripting.shell.util.Sanitizer.Companion.EMPTY_SANITIZER
 import java.io.PrintStream
 import java.util.concurrent.TimeUnit
 
@@ -19,11 +20,21 @@ object ProcessRunner {
         envAdjuster: EnvAdjuster = {},
         waitTimeMinutes: Int = 10,
         inheritInput: Boolean = false,
+        inputSanitizer: Sanitizer = EMPTY_SANITIZER,
+        outputSanitizer: Sanitizer = inputSanitizer.swapped(),
         outPrinter: List<PrintStream> = DEFAULT_OUT_PRINTERS,
         errPrinter: List<PrintStream> = DEFAULT_ERR_PRINTERS,
     ): Int {
         return runProcess(
-            command.asList(), workingDirectory, envAdjuster, waitTimeMinutes, inheritInput, outPrinter, errPrinter
+            command.asList(),
+            workingDirectory,
+            envAdjuster,
+            waitTimeMinutes,
+            inheritInput,
+            inputSanitizer,
+            outputSanitizer,
+            outPrinter,
+            errPrinter
         )
     }
 
@@ -33,6 +44,8 @@ object ProcessRunner {
         envAdjuster: EnvAdjuster = {},
         waitTimeMinutes: Int = 10,
         inheritInput: Boolean = false,
+        inputSanitizer: Sanitizer = EMPTY_SANITIZER,
+        outputSanitizer: Sanitizer = inputSanitizer.swapped(),
         outPrinter: List<PrintStream> = DEFAULT_OUT_PRINTERS,
         errPrinter: List<PrintStream> = DEFAULT_ERR_PRINTERS,
     ): Int {
@@ -48,8 +61,8 @@ object ProcessRunner {
             // we need to gobble the streams to prevent that the internal pipes hit their respective buffer limits, which
             // would lock the sub-process execution (see see https://github.com/kscripting/kscript/issues/55
             // https://stackoverflow.com/questions/14165517/processbuilder-forwarding-stdout-and-stderr-of-started-processes-without-blocki
-            val inputStreamReader = StreamGobbler(process.inputStream, outPrinter).start()
-            val errorStreamReader = StreamGobbler(process.errorStream, errPrinter).start()
+            val inputStreamReader = StreamGobbler(outputSanitizer, process.inputStream, outPrinter).start()
+            val errorStreamReader = StreamGobbler(outputSanitizer, process.errorStream, errPrinter).start()
 
             val exitedNormally = process.waitFor(waitTimeMinutes.toLong(), TimeUnit.MINUTES)
 
