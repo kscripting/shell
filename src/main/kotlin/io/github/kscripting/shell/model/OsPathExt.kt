@@ -23,9 +23,9 @@ fun URI.toOsPath(): OsPath =
 
 fun OsPath.toNativePath(): Path = Paths.get(toNativeOsPath().stringPath())
 
-fun OsPath.toNativeOsPath() = if (osType.isPosixHostedOnWindows()) convert(OsType.WINDOWS) else this
-
 fun OsPath.toNativeFile(): File = toNativePath().toFile()
+
+fun OsPath.toNativeOsPath(): OsPath = if (osType.isPosixHostedOnWindows()) convert(OsType.WINDOWS) else this
 
 
 // OsPath operations
@@ -46,21 +46,20 @@ fun OsPath.readText(charset: Charset = Charsets.UTF_8): String = toNativePath().
 
 
 // OsPath accessors
-
 val OsPath.leaf
-    get() = if (pathParts.isEmpty()) "" else pathParts.last()
+    get(): String? = if (pathParts.isEmpty()) null else pathParts.last()
 
 val OsPath.root
-    get() = if (pathParts.isEmpty()) "" else pathParts.first()
+    get(): String? = if (pathParts.isEmpty()) null else pathParts.first()
 
 val OsPath.rootOsPath
-    get() = OsPath.createOrThrow(osType, root)
+    get():OsPath = if (root == null) OsPath.createOrThrow(osType) else OsPath.createOrThrow(osType, root!!)
 
 val OsPath.parent
-    get() = toNativePath().parent
+    get(): OsPath = OsPath.createOrThrow(osType, pathParts.dropLast(1))
 
 val OsPath.nativeType
-    get() = if (osType.isPosixHostedOnWindows()) OsType.WINDOWS else osType
+    get(): OsType = if (osType.isPosixHostedOnWindows()) OsType.WINDOWS else osType
 
 val OsPath.extension
-    get() = leaf.substringAfterLast('.', "")
+    get(): String? = leaf?.substringAfterLast('.', "")

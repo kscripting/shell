@@ -136,29 +136,27 @@ data class OsPath(val osType: OsType, val pathType: PathType, val pathParts: Lis
             '\\'
         }
 
-        fun createOrThrow(osType: OsType, root: String, vararg pathParts: String): OsPath {
-            return when (val result = internalCreate(osType, root, *pathParts)) {
+        fun createOrThrow(vararg pathParts: String): OsPath =
+            createOrThrow(OsType.native, pathParts.toList())
+
+        fun createOrThrow(osType: OsType, vararg pathParts: String): OsPath =
+            createOrThrow(osType, pathParts.toList())
+
+        fun createOrThrow(osType: OsType, pathParts: List<String>): OsPath {
+            return when (val result = internalCreate(osType, pathParts)) {
                 is Either.Right -> result.value
                 is Either.Left -> throw IllegalArgumentException(result.value)
             }
         }
 
-        fun createOrThrow(root: String, vararg pathParts: String): OsPath {
-            return when (val result = internalCreate(OsType.native, root, *pathParts)) {
-                is Either.Right -> result.value
-                is Either.Left -> throw IllegalArgumentException(result.value)
-            }
-        }
+        fun create(vararg pathParts: String): OsPath? =
+            create(OsType.native, pathParts.toList())
 
-        fun create(osType: OsType, root: String, vararg pathParts: String): OsPath? {
-            return when (val result = internalCreate(osType, root, *pathParts)) {
-                is Either.Right -> result.value
-                is Either.Left -> null
-            }
-        }
+        fun create(osType: OsType, vararg pathParts: String): OsPath? =
+            create(osType, pathParts.toList())
 
-        fun create(root: String, vararg pathParts: String): OsPath? {
-            return when (val result = internalCreate(OsType.native, root, *pathParts)) {
+        fun create(osType: OsType, pathParts: List<String>): OsPath? {
+            return when (val result = internalCreate(osType, pathParts)) {
                 is Either.Right -> result.value
                 is Either.Left -> null
             }
@@ -167,10 +165,10 @@ data class OsPath(val osType: OsType, val pathType: PathType, val pathParts: Lis
         //Relaxed validation:
         //1. It doesn't matter if there is '/' or '\' used as path separator - both are treated he same
         //2. Duplicated or trailing slashes '/' and backslashes '\' are just ignored
-        private fun internalCreate(osType: OsType, root: String, vararg pathParts: String): Either<String, OsPath> {
+        private fun internalCreate(osType: OsType, pathParts: List<String>): Either<String, OsPath> {
             val pathSeparatorCharacter = resolvePathSeparator(osType)
 
-            val path = listOf(root, *pathParts).joinToString(pathSeparatorCharacter.toString())
+            val path = pathParts.joinToString(pathSeparatorCharacter.toString())
             val pathPartsResolved = path.split('/', '\\').toMutableList()
 
             //Validate root element of path and find out if it is absolute or relative

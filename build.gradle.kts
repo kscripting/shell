@@ -1,10 +1,11 @@
-val kotlinVersion: String = "1.7.21"
+val kotlinVersion: String = "1.8.21"
 
 plugins {
-    kotlin("jvm") version "1.7.21"
+    kotlin("jvm") version "1.8.21"
     id("com.adarshr.test-logger") version "3.2.0"
     `maven-publish`
     signing
+    idea
 }
 
 repositories {
@@ -15,9 +16,9 @@ group = "io.github.kscripting"
 version = "0.6.0-SNAPSHOT"
 
 sourceSets {
-    create("integration") {
-        java.srcDir("$projectDir/src/integration/kotlin")
-        resources.srcDir("$projectDir/src/integration/resources")
+    create("itest") {
+        kotlin.srcDir("$projectDir/src/itest/kotlin")
+        resources.srcDir("$projectDir/src/itest/resources")
 
         compileClasspath += main.get().output + test.get().output
         runtimeClasspath += main.get().output + test.get().output
@@ -25,12 +26,12 @@ sourceSets {
 }
 
 configurations {
-    get("integrationImplementation").apply { extendsFrom(get("testImplementation")) }
+    get("itestImplementation").apply { extendsFrom(get("testImplementation")) }
 }
 
 java {
     toolchain {
-        languageVersion.set(JavaLanguageVersion.of(8))
+        languageVersion.set(JavaLanguageVersion.of(11))
     }
 
     withJavadocJar()
@@ -39,12 +40,11 @@ java {
 
 tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().all {
     kotlinOptions {
-        jvmTarget = "1.8"
+        jvmTarget = "11"
     }
-
 }
 
-tasks.create<Test>("integrationTest") {
+tasks.create<Test>("itest") {
     val itags = System.getProperty("includeTags") ?: ""
     val etags = System.getProperty("excludeTags") ?: ""
 
@@ -64,8 +64,8 @@ tasks.create<Test>("integrationTest") {
 
     description = "Runs the integration tests."
     group = "verification"
-    testClassesDirs = sourceSets["integration"].output.classesDirs
-    classpath = sourceSets["integration"].runtimeClasspath
+    testClassesDirs = sourceSets["itest"].output.classesDirs
+    classpath = sourceSets["itest"].runtimeClasspath
     outputs.upToDateWhen { false }
     mustRunAfter(tasks["test"])
     //dependsOn(tasks["assemble"], tasks["test"])
@@ -78,7 +78,13 @@ tasks.create<Test>("integrationTest") {
 
 tasks.create<Task>("printIntegrationClasspath") {
     doLast {
-        println(sourceSets["integration"].runtimeClasspath.asPath)
+        println(sourceSets["itest"].runtimeClasspath.asPath)
+    }
+}
+
+idea {
+    module {
+        testSources.from(sourceSets["itest"].kotlin.srcDirs)
     }
 }
 
@@ -147,9 +153,6 @@ dependencies {
     implementation("org.jetbrains.kotlin:kotlin-reflect:$kotlinVersion")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.4")
 
-    implementation("org.jetbrains.kotlin:kotlin-scripting-common:$kotlinVersion")
-    implementation("org.jetbrains.kotlin:kotlin-scripting-jvm:$kotlinVersion")
-    implementation("org.jetbrains.kotlin:kotlin-scripting-dependencies-maven-all:$kotlinVersion")
     implementation("io.arrow-kt:arrow-core:1.1.2")
     implementation("org.apache.commons:commons-lang3:3.12.0")
 

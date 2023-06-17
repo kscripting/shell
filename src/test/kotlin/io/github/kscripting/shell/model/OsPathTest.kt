@@ -69,6 +69,13 @@ class OsPathTest {
             it.prop(OsPath::pathType).isEqualTo(PathType.RELATIVE)
             it.prop(OsPath::osType).isEqualTo(OsType.LINUX)
         }
+
+        //Home dir is correctly handled
+        assertThat(OsPath.createOrThrow(OsType.LINUX, "~/admin/.git")).let {
+            it.prop(OsPath::pathParts).isEqualTo(listOf("~", "admin", ".git"))
+            it.prop(OsPath::pathType).isEqualTo(PathType.ABSOLUTE)
+            it.prop(OsPath::osType).isEqualTo(OsType.LINUX)
+        }
     }
 
     @Test
@@ -99,8 +106,7 @@ class OsPathTest {
     @Test
     fun `Test invalid Linux paths`() {
         assertThat { OsPath.createOrThrow(OsType.LINUX, "/ad*asdf") }.isFailure()
-            .isInstanceOf(IllegalArgumentException::class.java)
-            .hasMessage("Invalid character '*' in path '/ad*asdf'")
+            .isInstanceOf(IllegalArgumentException::class.java).hasMessage("Invalid character '*' in path '/ad*asdf'")
     }
 
     @Test
@@ -127,14 +133,12 @@ class OsPathTest {
 
         assertThat(
             OsPath.createOrThrow(OsType.LINUX, "./home/admin/")
-                .resolve(OsPath.createOrThrow(OsType.LINUX, "./.kscript/"))
-                .stringPath()
+                .resolve(OsPath.createOrThrow(OsType.LINUX, "./.kscript/")).stringPath()
         ).isEqualTo("./home/admin/.kscript")
 
         assertThat(
             OsPath.createOrThrow(OsType.LINUX, "../home/admin/")
-                .resolve(OsPath.createOrThrow(OsType.LINUX, "./.kscript/"))
-                .stringPath()
+                .resolve(OsPath.createOrThrow(OsType.LINUX, "./.kscript/")).stringPath()
         ).isEqualTo("../home/admin/.kscript")
 
         assertThat(
@@ -149,14 +153,12 @@ class OsPathTest {
 
         assertThat {
             OsPath.createOrThrow(OsType.LINUX, "./home/admin").resolve(OsPath.createOrThrow(OsType.WINDOWS, ".\\run"))
-        }.isFailure()
-            .isInstanceOf(IllegalArgumentException::class.java)
+        }.isFailure().isInstanceOf(IllegalArgumentException::class.java)
             .hasMessage("Paths from different OS's: 'LINUX' path can not be resolved with 'WINDOWS' path")
 
         assertThat {
             OsPath.createOrThrow(OsType.LINUX, "./home/admin").resolve(OsPath.createOrThrow(OsType.LINUX, "/run"))
-        }.isFailure()
-            .isInstanceOf(IllegalArgumentException::class.java)
+        }.isFailure().isInstanceOf(IllegalArgumentException::class.java)
             .hasMessage("Can not resolve absolute, relative or undefined path './home/admin' using absolute path '/run'")
     }
 
@@ -323,20 +325,22 @@ class OsPathTest {
         ).isEqualTo("..\\home\\admin\\.kscript")
     }
 
+    // ************************************************* Special cases *************************************************
+
+    @Test
+    fun `Special cases`() {
+        assertThat(OsPath.createOrThrow(OsType.LINUX)).isEqualTo(
+            OsPath(OsType.LINUX, PathType.UNDEFINED, emptyList(), '/')
+        )
+    }
+
     // ************************************* Shorthand for creating composite paths ************************************
 
     @Test
-    fun `Add paths`() {
+    fun `Concatenate paths`() {
         val p = OsPath.createOrThrow(OsType.MSYS, "/c/home")
         val p1 = OsPath.createOrThrow(OsType.MSYS, "admin/.kscript")
 
         assertThat(p / p1).isEqualTo(OsPath.createOrThrow(OsType.MSYS, "/c/home/admin/.kscript"))
-
-        val test = OsPath.createOrThrow(OsType.LINUX, "/c/home/admin/.kscript")
-        println(test)
-        println(test.osType)
-        println(test.pathType)
-        println(test.pathParts)
-        println(test.pathSeparator)
     }
 }
