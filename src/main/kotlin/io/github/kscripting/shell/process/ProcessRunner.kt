@@ -20,8 +20,7 @@ object ProcessRunner {
         envAdjuster: EnvAdjuster = {},
         waitTimeMinutes: Int = 10,
         inheritInput: Boolean = false,
-        inputSanitizer: Sanitizer = EMPTY_SANITIZER,
-        outputSanitizer: Sanitizer = inputSanitizer.swapped(),
+        outputSanitizer: Sanitizer = EMPTY_SANITIZER,
         outPrinter: List<PrintStream> = DEFAULT_OUT_PRINTERS,
         errPrinter: List<PrintStream> = DEFAULT_ERR_PRINTERS,
     ): Int {
@@ -31,7 +30,6 @@ object ProcessRunner {
             envAdjuster,
             waitTimeMinutes,
             inheritInput,
-            inputSanitizer,
             outputSanitizer,
             outPrinter,
             errPrinter
@@ -44,8 +42,7 @@ object ProcessRunner {
         envAdjuster: EnvAdjuster = {},
         waitTimeMinutes: Int = 10,
         inheritInput: Boolean = false,
-        inputSanitizer: Sanitizer = EMPTY_SANITIZER,
-        outputSanitizer: Sanitizer = inputSanitizer.swapped(),
+        outputSanitizer: Sanitizer = EMPTY_SANITIZER,
         outPrinter: List<PrintStream> = DEFAULT_OUT_PRINTERS,
         errPrinter: List<PrintStream> = DEFAULT_ERR_PRINTERS,
     ): Int {

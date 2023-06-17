@@ -28,7 +28,7 @@ object TestContext {
         println("nativeType     : $nativeType")
         println("projectDir     : $projectDir")
         println("execDir        : ${execPath.convert(osType)}")
-        println("Kotlin version : ${ShellExecutor.evalAndGobble(osType, "kotlin -version", null).stdout}")
+        println("Kotlin version : ${ShellExecutor.evalAndGobble("kotlin -version", osType, null).stdout}")
 
         execPath.createDirectories()
     }
@@ -51,8 +51,8 @@ object TestContext {
         }
 
         return ShellExecutor.evalAndGobble(
-            osType,
             newCommand,
+            osType,
             null,
             ::internalEnvAdjuster,
             inputSanitizer = inputSanitizer
