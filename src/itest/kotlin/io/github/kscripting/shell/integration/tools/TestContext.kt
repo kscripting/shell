@@ -17,8 +17,10 @@ object TestContext {
     private val pathSeparator: String = if (osType.isWindowsLike() || osType.isPosixHostedOnWindows()) ";" else ":"
     private val envPath: String = "${execPath.convert(osType)}$pathSeparator$systemPath"
 
+    val nl: String = System.getProperty("line.separator")
+
     private val inputSanitizer = Sanitizer(
-        listOf("[bs]" to "\\", "[nl]" to System.getProperty("line.separator"), "[tb]" to "\t")
+        listOf("[bs]" to "\\", "[nl]" to nl, "[tb]" to "\t")
     )
 
     val projectDir: String = projectPath.convert(osType).stringPath()
@@ -29,15 +31,21 @@ object TestContext {
         println("projectDir     : $projectDir")
         println("execDir        : ${execPath.convert(osType)}")
         println("Kotlin version : ${ShellExecutor.evalAndGobble("kotlin -version", osType, null).stdout}")
+        println("Env path       : $envPath")
 
         execPath.createDirectories()
     }
 
-    fun resolvePath(path: String): OsPath {
+    fun path(path: String): OsPath {
         return OsPath.createOrThrow(osType, path)
     }
 
-    fun runProcess(command: String, envAdjuster: EnvAdjuster): ProcessResult {
+    fun runProcess(
+        command: String,
+        envAdjuster: EnvAdjuster,
+        inputSanitizer: Sanitizer? = null,
+        outputSanitizer: Sanitizer? = null
+    ): ProcessResult {
         //In MSYS all quotes should be single quotes, otherwise content is interpreted e.g. backslashes.
         //(MSYS bash interpreter is also replacing double quotes into the single quotes: see: bash -xc 'kscript "println(1+1)"')
         val newCommand = when {
@@ -55,7 +63,8 @@ object TestContext {
             osType,
             null,
             ::internalEnvAdjuster,
-            inputSanitizer = inputSanitizer
+            inputSanitizer = inputSanitizer ?: this.inputSanitizer,
+            outputSanitizer = outputSanitizer ?: this.inputSanitizer.swapped()
         )
     }
 

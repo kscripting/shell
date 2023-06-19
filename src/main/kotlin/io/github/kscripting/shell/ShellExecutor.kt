@@ -13,8 +13,10 @@ import io.github.kscripting.shell.util.Sanitizer.Companion.EMPTY_SANITIZER
 import java.io.ByteArrayOutputStream
 import java.io.PrintStream
 import java.nio.charset.StandardCharsets
+import java.util.regex.Pattern
 
 object ShellExecutor {
+    private val SPLIT_PATTERN = Pattern.compile("([^\"]\\S*|\".+?\")\\s*")
     private val UTF_8 = StandardCharsets.UTF_8.name()
     private val DEFAULT_SHELL_MAPPER: Map<OsType, ShellType> = mapOf(
         OsType.WINDOWS to ShellType.CMD,
@@ -55,7 +57,8 @@ object ShellExecutor {
                     inputSanitizer,
                     outputSanitizer,
                     outPrinter + additionalOutPrinter,
-                    errPrinter + additionalErrPrinter
+                    errPrinter + additionalErrPrinter,
+                    shellMapper
                 )
             }
         }
@@ -81,12 +84,22 @@ object ShellExecutor {
         val commandList = when (val shellType = shellMapper.getValue(osType)) {
             //NOTE: usually command is an argument to shell (bash/cmd), so it should stay not split by whitespace as
             //a single string, but when there is no shell, we have to split the command
-            ShellType.NONE -> sanitizedCommand.split("\\s+")
+            ShellType.NONE -> {
+                val result = mutableListOf<String>()
+                //Split by whitespace preserving spaces inside quotes
+                val matcher = SPLIT_PATTERN.matcher(sanitizedCommand)
+                while (matcher.find()) {
+                    result.add(matcher.group(1)) // Add .replace("\"", "") to remove surrounding quotes.
+                }
+                result
+            }
+
             ShellType.CMD ->
                 // For Windows: if the first character in args in `cmd /c <args>` is a quote, cmd will remove it as well
                 // as the last quote character within args before processing the term, which removes our quotes.
                 // Empty character before command preserves quotes correctly.
                 shellType.executorCommand.toList() + " $sanitizedCommand"
+
             else ->
                 shellType.executorCommand.toList() + sanitizedCommand
         }

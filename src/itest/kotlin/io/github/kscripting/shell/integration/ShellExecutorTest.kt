@@ -3,8 +3,8 @@ package io.github.kscripting.shell.integration
 import io.github.kscripting.shell.integration.tools.TestAssertion.verify
 import io.github.kscripting.shell.integration.tools.TestContext
 import io.github.kscripting.shell.integration.tools.TestContext.execPath
-import io.github.kscripting.shell.integration.tools.TestContext.resolvePath
 import io.github.kscripting.shell.model.readText
+import io.github.kscripting.shell.util.Sanitizer
 import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
 
@@ -22,14 +22,22 @@ class ShellExecutorTest : TestBase {
     fun `Unicode characters output works`() {
         val path = execPath().resolve("unicodeOutput.txt")
         println(path)
-        verify("doEcho -f $path", 0, path.readText(), "")
+        verify(
+            "doEcho -f $path",
+            0,
+            path.readText(),
+            "",
+            inputSanitizer = Sanitizer.EMPTY_SANITIZER,
+            outputSanitizer = Sanitizer.EMPTY_SANITIZER
+        )
     }
 
     companion object {
         init {
-            TestContext.copyToExecutablePath("src/doEcho.sh")
+            TestContext.copyToExecutablePath("src/doEcho")
             TestContext.copyToExecutablePath("src/doEcho.bat")
             TestContext.copyToExecutablePath("src/unicodeOutput.txt")
+            Thread.sleep(1000) //It takes time to copy and set executable bit [tests fail without this]
         }
     }
 }

@@ -3,6 +3,7 @@ package io.github.kscripting.shell.integration.tools
 import io.github.kscripting.shell.integration.tools.TestContext.runProcess
 import io.github.kscripting.shell.model.ProcessResult
 import io.github.kscripting.shell.process.EnvAdjuster
+import io.github.kscripting.shell.util.Sanitizer
 
 object TestAssertion {
     fun <T : Any> genericEquals(value: T) = GenericEquals(value)
@@ -17,33 +18,41 @@ object TestAssertion {
         exitCode: Int = 0,
         stdOut: TestMatcher<String>,
         stdErr: String = "",
-        envAdjuster: EnvAdjuster = {}
-    ): ProcessResult = verify(command, exitCode, stdOut, eq(stdErr), envAdjuster)
+        envAdjuster: EnvAdjuster = {},
+        inputSanitizer: Sanitizer? = null,
+        outputSanitizer: Sanitizer? = null,
+    ): ProcessResult = verify(command, exitCode, stdOut, eq(stdErr), envAdjuster, inputSanitizer, outputSanitizer)
 
     fun verify(
         command: String,
         exitCode: Int = 0,
         stdOut: String,
         stdErr: TestMatcher<String>,
-        envAdjuster: EnvAdjuster = {}
-    ): ProcessResult = verify(command, exitCode, eq(stdOut), stdErr, envAdjuster)
+        envAdjuster: EnvAdjuster = {},
+        inputSanitizer: Sanitizer? = null,
+        outputSanitizer: Sanitizer? = null,
+    ): ProcessResult = verify(command, exitCode, eq(stdOut), stdErr, envAdjuster, inputSanitizer, outputSanitizer)
 
     fun verify(
         command: String,
         exitCode: Int = 0,
         stdOut: String = "",
         stdErr: String = "",
-        envAdjuster: EnvAdjuster = {}
-    ): ProcessResult = verify(command, exitCode, eq(stdOut), eq(stdErr), envAdjuster)
+        envAdjuster: EnvAdjuster = {},
+        inputSanitizer: Sanitizer? = null,
+        outputSanitizer: Sanitizer? = null,
+    ): ProcessResult = verify(command, exitCode, eq(stdOut), eq(stdErr), envAdjuster, inputSanitizer, outputSanitizer)
 
     fun verify(
         command: String,
         exitCode: Int = 0,
         stdOut: TestMatcher<String>,
         stdErr: TestMatcher<String>,
-        envAdjuster: EnvAdjuster = {}
+        envAdjuster: EnvAdjuster = {},
+        inputSanitizer: Sanitizer? = null,
+        outputSanitizer: Sanitizer? = null,
     ): ProcessResult {
-        val processResult = runProcess(command, envAdjuster)
+        val processResult = runProcess(command, envAdjuster, inputSanitizer, outputSanitizer)
         println(processResult)
 
         val extCde = genericEquals(exitCode)

@@ -1,3 +1,5 @@
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompilationTask
+
 val kotlinVersion: String = "1.8.21"
 
 plugins {
@@ -15,6 +17,10 @@ repositories {
 group = "io.github.kscripting"
 version = "0.6.0-SNAPSHOT"
 
+kotlin {
+    jvmToolchain(11)
+}
+
 sourceSets {
     create("itest") {
         kotlin.srcDir("$projectDir/src/itest/kotlin")
@@ -27,21 +33,6 @@ sourceSets {
 
 configurations {
     get("itestImplementation").apply { extendsFrom(get("testImplementation")) }
-}
-
-java {
-    toolchain {
-        languageVersion.set(JavaLanguageVersion.of(11))
-    }
-
-    withJavadocJar()
-    withSourcesJar()
-}
-
-tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().all {
-    kotlinOptions {
-        jvmTarget = "11"
-    }
 }
 
 tasks.create<Test>("itest") {
@@ -67,8 +58,7 @@ tasks.create<Test>("itest") {
     testClassesDirs = sourceSets["itest"].output.classesDirs
     classpath = sourceSets["itest"].runtimeClasspath
     outputs.upToDateWhen { false }
-    mustRunAfter(tasks["test"])
-    //dependsOn(tasks["assemble"], tasks["test"])
+    dependsOn(tasks["build"])
 
     doLast {
         println("Include tags: $itags")
