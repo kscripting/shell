@@ -4,6 +4,7 @@ import io.github.kscripting.shell.ShellExecutor
 import io.github.kscripting.shell.model.*
 import io.github.kscripting.shell.process.EnvAdjuster
 import io.github.kscripting.shell.util.Sanitizer
+import java.io.InputStream
 
 object TestContext {
     private val osType: OsType = OsType.find(System.getProperty("osType")) ?: OsType.native
@@ -44,7 +45,8 @@ object TestContext {
         command: String,
         envAdjuster: EnvAdjuster,
         inputSanitizer: Sanitizer? = null,
-        outputSanitizer: Sanitizer? = null
+        outputSanitizer: Sanitizer? = null,
+        inputStream: InputStream? = null
     ): ProcessResult {
         //In MSYS all quotes should be single quotes, otherwise content is interpreted e.g. backslashes.
         //(MSYS bash interpreter is also replacing double quotes into the single quotes: see: bash -xc 'kscript "println(1+1)"')
@@ -64,7 +66,8 @@ object TestContext {
             null,
             ::internalEnvAdjuster,
             inputSanitizer = inputSanitizer ?: this.inputSanitizer,
-            outputSanitizer = outputSanitizer ?: this.inputSanitizer.swapped()
+            outputSanitizer = outputSanitizer ?: this.inputSanitizer.swapped(),
+            inputStream = inputStream
         )
     }
 

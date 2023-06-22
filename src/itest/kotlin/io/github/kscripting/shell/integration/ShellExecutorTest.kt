@@ -7,6 +7,7 @@ import io.github.kscripting.shell.model.readText
 import io.github.kscripting.shell.util.Sanitizer
 import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
+import java.io.ByteArrayInputStream
 
 class ShellExecutorTest : TestBase {
     @Test
@@ -30,6 +31,12 @@ class ShellExecutorTest : TestBase {
             inputSanitizer = Sanitizer.EMPTY_SANITIZER,
             outputSanitizer = Sanitizer.EMPTY_SANITIZER
         )
+    }
+
+    @Test
+    @Tag("posix")
+    fun `Call command utilizing input stream`() {
+        verify("read INPUT; echo \$INPUT", 0, "Input to READ[nl]", "", inputStream = "Input to READ".byteInputStream())
     }
 
     companion object {

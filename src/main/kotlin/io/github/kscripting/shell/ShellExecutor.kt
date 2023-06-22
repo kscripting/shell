@@ -11,10 +11,12 @@ import io.github.kscripting.shell.process.ProcessRunner.DEFAULT_OUT_PRINTERS
 import io.github.kscripting.shell.util.Sanitizer
 import io.github.kscripting.shell.util.Sanitizer.Companion.EMPTY_SANITIZER
 import java.io.ByteArrayOutputStream
+import java.io.InputStream
 import java.io.PrintStream
 import java.nio.charset.StandardCharsets
 import java.util.regex.Pattern
 
+@Suppress("MemberVisibilityCanBePrivate")
 object ShellExecutor {
     private val SPLIT_PATTERN = Pattern.compile("([^\"]\\S*|\".+?\")\\s*")
     private val UTF_8 = StandardCharsets.UTF_8.name()
@@ -38,6 +40,7 @@ object ShellExecutor {
         outputSanitizer: Sanitizer = inputSanitizer.swapped(),
         outPrinter: List<PrintStream> = emptyList(),
         errPrinter: List<PrintStream> = emptyList(),
+        inputStream: InputStream? = null,
         shellMapper: Map<OsType, ShellType> = DEFAULT_SHELL_MAPPER
     ): ProcessResult {
         val outStream = ByteArrayOutputStream(1024)
@@ -58,6 +61,7 @@ object ShellExecutor {
                     outputSanitizer,
                     outPrinter + additionalOutPrinter,
                     errPrinter + additionalErrPrinter,
+                    inputStream,
                     shellMapper
                 )
             }
@@ -77,6 +81,7 @@ object ShellExecutor {
         outputSanitizer: Sanitizer = inputSanitizer.swapped(),
         outPrinter: List<PrintStream> = DEFAULT_OUT_PRINTERS,
         errPrinter: List<PrintStream> = DEFAULT_ERR_PRINTERS,
+        inputStream: InputStream? = null,
         shellMapper: Map<OsType, ShellType> = DEFAULT_SHELL_MAPPER
     ): Int {
         val sanitizedCommand = inputSanitizer.sanitize(command)
@@ -112,7 +117,8 @@ object ShellExecutor {
             inheritInput = inheritInput,
             outputSanitizer = outputSanitizer,
             outPrinter = outPrinter,
-            errPrinter = errPrinter
+            errPrinter = errPrinter,
+            inputStream = inputStream
         )
     }
 }

@@ -4,6 +4,7 @@ import io.github.kscripting.shell.integration.tools.TestContext.runProcess
 import io.github.kscripting.shell.model.ProcessResult
 import io.github.kscripting.shell.process.EnvAdjuster
 import io.github.kscripting.shell.util.Sanitizer
+import java.io.InputStream
 
 object TestAssertion {
     fun <T : Any> genericEquals(value: T) = GenericEquals(value)
@@ -21,7 +22,8 @@ object TestAssertion {
         envAdjuster: EnvAdjuster = {},
         inputSanitizer: Sanitizer? = null,
         outputSanitizer: Sanitizer? = null,
-    ): ProcessResult = verify(command, exitCode, stdOut, eq(stdErr), envAdjuster, inputSanitizer, outputSanitizer)
+        inputStream: InputStream? = null
+    ): ProcessResult = verify(command, exitCode, stdOut, eq(stdErr), envAdjuster, inputSanitizer, outputSanitizer, inputStream)
 
     fun verify(
         command: String,
@@ -31,7 +33,8 @@ object TestAssertion {
         envAdjuster: EnvAdjuster = {},
         inputSanitizer: Sanitizer? = null,
         outputSanitizer: Sanitizer? = null,
-    ): ProcessResult = verify(command, exitCode, eq(stdOut), stdErr, envAdjuster, inputSanitizer, outputSanitizer)
+        inputStream: InputStream? = null
+    ): ProcessResult = verify(command, exitCode, eq(stdOut), stdErr, envAdjuster, inputSanitizer, outputSanitizer, inputStream)
 
     fun verify(
         command: String,
@@ -41,7 +44,8 @@ object TestAssertion {
         envAdjuster: EnvAdjuster = {},
         inputSanitizer: Sanitizer? = null,
         outputSanitizer: Sanitizer? = null,
-    ): ProcessResult = verify(command, exitCode, eq(stdOut), eq(stdErr), envAdjuster, inputSanitizer, outputSanitizer)
+        inputStream: InputStream? = null
+    ): ProcessResult = verify(command, exitCode, eq(stdOut), eq(stdErr), envAdjuster, inputSanitizer, outputSanitizer, inputStream)
 
     fun verify(
         command: String,
@@ -51,8 +55,9 @@ object TestAssertion {
         envAdjuster: EnvAdjuster = {},
         inputSanitizer: Sanitizer? = null,
         outputSanitizer: Sanitizer? = null,
+        inputStream: InputStream? = null
     ): ProcessResult {
-        val processResult = runProcess(command, envAdjuster, inputSanitizer, outputSanitizer)
+        val processResult = runProcess(command, envAdjuster, inputSanitizer, outputSanitizer, inputStream)
         println(processResult)
 
         val extCde = genericEquals(exitCode)

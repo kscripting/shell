@@ -5,6 +5,7 @@ import io.github.kscripting.shell.model.OsPath
 import io.github.kscripting.shell.model.toNativeFile
 import io.github.kscripting.shell.util.Sanitizer
 import io.github.kscripting.shell.util.Sanitizer.Companion.EMPTY_SANITIZER
+import java.io.InputStream
 import java.io.PrintStream
 import java.util.concurrent.TimeUnit
 
@@ -23,6 +24,7 @@ object ProcessRunner {
         outputSanitizer: Sanitizer = EMPTY_SANITIZER,
         outPrinter: List<PrintStream> = DEFAULT_OUT_PRINTERS,
         errPrinter: List<PrintStream> = DEFAULT_ERR_PRINTERS,
+        inputStream: InputStream? = null
     ): Int {
         return runProcess(
             command.asList(),
@@ -32,7 +34,8 @@ object ProcessRunner {
             inheritInput,
             outputSanitizer,
             outPrinter,
-            errPrinter
+            errPrinter,
+            inputStream
         )
     }
 
@@ -45,15 +48,23 @@ object ProcessRunner {
         outputSanitizer: Sanitizer = EMPTY_SANITIZER,
         outPrinter: List<PrintStream> = DEFAULT_OUT_PRINTERS,
         errPrinter: List<PrintStream> = DEFAULT_ERR_PRINTERS,
+        inputStream: InputStream? = null
     ): Int {
         try {
             // simplify with https://stackoverflow.com/questions/35421699/how-to-invoke-external-command-from-within-kotlin-code
             val process = ProcessBuilder(command)
                 .directory(workingDirectory?.toNativeFile())
                 .redirectInput(if (inheritInput) ProcessBuilder.Redirect.INHERIT else ProcessBuilder.Redirect.PIPE)
+                .redirectOutput(ProcessBuilder.Redirect.PIPE)
                 .apply {
                     envAdjuster(environment())
                 }.start()
+
+            // My own explanation is here: https://github.com/lxc/lxd/issues/6856
+            if (!inheritInput) {
+                inputStream?.transferTo(process.outputStream)
+                process.outputStream.close()
+            }
 
             // we need to gobble the streams to prevent that the internal pipes hit their respective buffer limits, which
             // would lock the sub-process execution (see see https://github.com/kscripting/kscript/issues/55
