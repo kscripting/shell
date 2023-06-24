@@ -2,24 +2,20 @@ package io.github.kscripting.shell.integration.tools
 
 import io.github.kscripting.shell.ShellExecutor
 import io.github.kscripting.shell.model.*
-import io.github.kscripting.shell.process.EnvAdjuster
 import io.github.kscripting.shell.util.Sanitizer
-import java.io.InputStream
 
 @Suppress("MemberVisibilityCanBePrivate")
 object TestContext {
     val osType: OsType = OsType.find(System.getProperty("osType")) ?: OsType.native
-    val nativeType = if (osType.isPosixHostedOnWindows()) OsType.WINDOWS else osType
 
-    val projectPath: OsPath = OsPath.createOrThrow(nativeType, System.getProperty("projectPath")).convert(osType)
+    val projectPath: OsPath = OsPath.createOrThrow(OsType.native, System.getProperty("projectPath")).convert(osType)
     val execPath: OsPath = projectPath.resolve("build/shell_test/bin")
     val testPath: OsPath = projectPath.resolve("build/shell_test/tmp")
 
-    val pathEnvName = if (osType.isWindowsLike()) "Path" else "PATH"
-    private val systemPath: String = System.getenv()[pathEnvName]!!
-
-    private val pathSeparator: String = if (osType.isWindowsLike() || osType.isPosixHostedOnWindows()) ";" else ":"
-    val envPath: String = "${execPath.convert(osType)}$pathSeparator$systemPath"
+    val pathEnvVariableName = if (osType.isWindowsLike()) "Path" else "PATH"
+    val pathEnvVariableValue: String = System.getenv()[pathEnvVariableName]!!
+    val pathEnvVariableSeparator: String = if (osType.isWindowsLike() || osType.isPosixHostedOnWindows()) ";" else ":"
+    val pathEnvVariableCalculatedPath: String = "${execPath.convert(osType)}$pathEnvVariableSeparator$pathEnvVariableValue"
 
     val nl: String = when {
         osType.isPosixHostedOnWindows() -> "\n"
@@ -31,11 +27,11 @@ object TestContext {
 
     init {
         println("osType         : $osType")
-        println("nativeType     : $nativeType")
+        println("nativeType     : ${OsType.native}")
         println("projectDir     : $projectPath")
         println("execDir        : ${execPath.convert(osType)}")
         println("Kotlin version : ${ShellExecutor.evalAndGobble("kotlin -version", osType, null).stdout}")
-        println("Env path       : $envPath")
+        println("Env path       : $pathEnvVariableCalculatedPath")
 
         execPath.createDirectories()
     }
