@@ -59,6 +59,8 @@ jobs:
           
           echo "OsType:         $OSTYPE"
           
+          chmod +x ./gradlew
+          
           ./gradlew clean assemble test || { echo 'Compilation or Unit tests failed' ; exit 1; }
           
           if [[ "$OSTYPE" == "linux"* ]]; then
