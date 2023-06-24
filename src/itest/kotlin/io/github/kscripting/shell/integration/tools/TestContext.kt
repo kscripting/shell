@@ -6,12 +6,15 @@ import io.github.kscripting.shell.process.EnvAdjuster
 import io.github.kscripting.shell.util.Sanitizer
 import java.io.InputStream
 
+@Suppress("MemberVisibilityCanBePrivate")
 object TestContext {
-    private val osType: OsType = OsType.find(System.getProperty("osType")) ?: OsType.native
-    private val nativeType = if (osType.isPosixHostedOnWindows()) OsType.WINDOWS else osType
+    val osType: OsType = OsType.find(System.getProperty("osType")) ?: OsType.native
+    val nativeType = if (osType.isPosixHostedOnWindows()) OsType.WINDOWS else osType
 
-    private val projectPath: OsPath = OsPath.createOrThrow(nativeType, System.getProperty("projectPath"))
-    private val execPath: OsPath = projectPath.resolve("build/shell/bin")
+    val projectPath: OsPath = OsPath.createOrThrow(nativeType, System.getProperty("projectPath")).convert(osType)
+    val execPath: OsPath = projectPath.resolve("build/shell_test/bin")
+    val testPath: OsPath = projectPath.resolve("build/shell_test/tmp")
+
     private val pathEnvName = if (osType.isWindowsLike()) "Path" else "PATH"
     private val systemPath: String = System.getenv()[pathEnvName]!!
 
@@ -20,16 +23,13 @@ object TestContext {
 
     val nl: String = System.getProperty("line.separator")
 
-    private val inputSanitizer = Sanitizer(
-        listOf("[bs]" to "\\", "[nl]" to nl, "[tb]" to "\t")
-    )
-
-    val projectDir: String = projectPath.convert(osType).stringPath()
+    val defaultInputSanitizer = Sanitizer(listOf("[bs]" to "\\", "[nl]" to nl, "[tb]" to "\t"))
+    val defaultOutputSanitizer = defaultInputSanitizer.swapped()
 
     init {
         println("osType         : $osType")
         println("nativeType     : $nativeType")
-        println("projectDir     : $projectDir")
+        println("projectDir     : $projectPath")
         println("execDir        : ${execPath.convert(osType)}")
         println("Kotlin version : ${ShellExecutor.evalAndGobble("kotlin -version", osType, null).stdout}")
         println("Env path       : $envPath")
@@ -37,16 +37,12 @@ object TestContext {
         execPath.createDirectories()
     }
 
-    fun path(path: String): OsPath {
-        return OsPath.createOrThrow(osType, path)
-    }
-
     fun runProcess(
         command: String,
-        envAdjuster: EnvAdjuster,
         inputSanitizer: Sanitizer? = null,
         outputSanitizer: Sanitizer? = null,
-        inputStream: InputStream? = null
+        inputStream: InputStream? = null,
+        envAdjuster: EnvAdjuster
     ): ProcessResult {
         //In MSYS all quotes should be single quotes, otherwise content is interpreted e.g. backslashes.
         //(MSYS bash interpreter is also replacing double quotes into the single quotes: see: bash -xc 'kscript "println(1+1)"')
@@ -64,20 +60,20 @@ object TestContext {
             newCommand,
             osType,
             null,
-            ::internalEnvAdjuster,
-            inputSanitizer = inputSanitizer ?: this.inputSanitizer,
-            outputSanitizer = outputSanitizer ?: this.inputSanitizer.swapped(),
-            inputStream = inputStream
+            inputSanitizer = inputSanitizer ?: this.defaultInputSanitizer,
+            outputSanitizer = outputSanitizer ?: this.defaultOutputSanitizer,
+            inputStream = inputStream,
+            envAdjuster = ::internalEnvAdjuster
         )
     }
 
-    fun copyToExecutablePath(source: String) {
+    fun copyFile(source: String, target: OsPath) {
         val sourceFile = projectPath.resolve(source).toNativeFile()
-        val targetFile = execPath.resolve(sourceFile.name).toNativeFile()
+        val targetFile = target.resolve(sourceFile.name).toNativeFile()
 
         sourceFile.copyTo(targetFile, overwrite = true)
-        targetFile.setExecutable(true)
+        if (target == execPath) {
+            targetFile.setExecutable(true)
+        }
     }
-
-    fun execPath(): OsPath = execPath
 }

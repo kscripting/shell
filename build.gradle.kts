@@ -1,3 +1,4 @@
+
 val kotlinVersion: String = "1.8.22"
 
 plugins {
@@ -56,7 +57,7 @@ tasks.create<Test>("itest") {
     testClassesDirs = sourceSets["itest"].output.classesDirs
     classpath = sourceSets["itest"].runtimeClasspath
     outputs.upToDateWhen { false }
-    dependsOn(tasks["build"])
+    dependsOn(tasks["assemble"])
 
     doLast {
         println("Include tags: $itags")
@@ -85,8 +86,9 @@ tasks.test {
     useJUnitPlatform()
 }
 
-val testToolsJar by tasks.creating(org.gradle.jvm.tasks.Jar::class) {
+val testToolsJar by tasks.registering(Jar::class) {
     //archiveFileName.set("eulenspiegel-testHelpers-$version.jar")
+    archiveClassifier.set("test")
     include("io/github/kscripting/shell/integration/tools/*")
     from(sourceSets["itest"].output)
 }
@@ -112,11 +114,14 @@ val scmSpec = Action<MavenPomScm> {
     url.set("https://github.com/kscripting/shell")
 }
 
+val publishArtifact = artifacts.add("archives", testToolsJar)
+
 publishing {
     publications {
         create<MavenPublication>("shell") {
             artifactId = "shell"
             from(components["java"])
+            artifact(publishArtifact)
 
             pom {
                 name.set("shell")
@@ -128,21 +133,6 @@ publishing {
                 scm(scmSpec)
             }
         }
-
-//        create<MavenPublication>("shellTest") {
-//            artifactId = "shell-test"
-//            artifact(testToolsJar)
-//
-//            pom {
-//                name.set("shell-test")
-//                description.set("Shell Tests - library for testing shell apps")
-//                url.set("https://github.com/kscripting/shell")
-//
-//                licenses(licencesSpec)
-//                developers(developersSpec)
-//                scm(scmSpec)
-//            }
-//        }
     }
 
     repositories {
@@ -161,7 +151,6 @@ publishing {
 
 signing {
     sign(publishing.publications["shell"])
-//    sign(publishing.publications["shellTest"])
 }
 
 dependencies {

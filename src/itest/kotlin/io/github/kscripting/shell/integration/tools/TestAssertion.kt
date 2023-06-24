@@ -19,45 +19,45 @@ object TestAssertion {
         exitCode: Int = 0,
         stdOut: TestMatcher<String>,
         stdErr: String = "",
-        envAdjuster: EnvAdjuster = {},
         inputSanitizer: Sanitizer? = null,
         outputSanitizer: Sanitizer? = null,
-        inputStream: InputStream? = null
-    ): ProcessResult = verify(command, exitCode, stdOut, eq(stdErr), envAdjuster, inputSanitizer, outputSanitizer, inputStream)
+        inputStream: InputStream? = null,
+        envAdjuster: EnvAdjuster = {}
+    ): ProcessResult = verify(command, exitCode, stdOut, eq(stdErr), inputSanitizer, outputSanitizer, inputStream, envAdjuster)
 
     fun verify(
         command: String,
         exitCode: Int = 0,
         stdOut: String,
         stdErr: TestMatcher<String>,
-        envAdjuster: EnvAdjuster = {},
         inputSanitizer: Sanitizer? = null,
         outputSanitizer: Sanitizer? = null,
-        inputStream: InputStream? = null
-    ): ProcessResult = verify(command, exitCode, eq(stdOut), stdErr, envAdjuster, inputSanitizer, outputSanitizer, inputStream)
+        inputStream: InputStream? = null,
+        envAdjuster: EnvAdjuster = {}
+    ): ProcessResult = verify(command, exitCode, eq(stdOut), stdErr, inputSanitizer, outputSanitizer, inputStream, envAdjuster)
 
     fun verify(
         command: String,
         exitCode: Int = 0,
         stdOut: String = "",
         stdErr: String = "",
-        envAdjuster: EnvAdjuster = {},
         inputSanitizer: Sanitizer? = null,
         outputSanitizer: Sanitizer? = null,
-        inputStream: InputStream? = null
-    ): ProcessResult = verify(command, exitCode, eq(stdOut), eq(stdErr), envAdjuster, inputSanitizer, outputSanitizer, inputStream)
+        inputStream: InputStream? = null,
+        envAdjuster: EnvAdjuster = {}
+    ): ProcessResult = verify(command, exitCode, eq(stdOut), eq(stdErr), inputSanitizer, outputSanitizer, inputStream, envAdjuster)
 
     fun verify(
         command: String,
         exitCode: Int = 0,
         stdOut: TestMatcher<String>,
         stdErr: TestMatcher<String>,
-        envAdjuster: EnvAdjuster = {},
         inputSanitizer: Sanitizer? = null,
         outputSanitizer: Sanitizer? = null,
-        inputStream: InputStream? = null
+        inputStream: InputStream? = null,
+        envAdjuster: EnvAdjuster = {}
     ): ProcessResult {
-        val processResult = runProcess(command, envAdjuster, inputSanitizer, outputSanitizer, inputStream)
+        val processResult = runProcess(command, inputSanitizer, outputSanitizer, inputStream, envAdjuster)
         println(processResult)
 
         val extCde = genericEquals(exitCode)

@@ -33,7 +33,6 @@ object ShellExecutor {
         command: String,
         osType: OsType = OsType.native,
         workingDirectory: OsPath? = null,
-        envAdjuster: EnvAdjuster = {},
         waitTimeMinutes: Int = 10,
         inheritInput: Boolean = false,
         inputSanitizer: Sanitizer = EMPTY_SANITIZER,
@@ -41,7 +40,8 @@ object ShellExecutor {
         outPrinter: List<PrintStream> = emptyList(),
         errPrinter: List<PrintStream> = emptyList(),
         inputStream: InputStream? = null,
-        shellMapper: Map<OsType, ShellType> = DEFAULT_SHELL_MAPPER
+        shellMapper: Map<OsType, ShellType> = DEFAULT_SHELL_MAPPER,
+        envAdjuster: EnvAdjuster = {}
     ): ProcessResult {
         val outStream = ByteArrayOutputStream(1024)
         val errStream = ByteArrayOutputStream(1024)
@@ -54,7 +54,6 @@ object ShellExecutor {
                     command,
                     osType,
                     workingDirectory,
-                    envAdjuster,
                     waitTimeMinutes,
                     inheritInput,
                     inputSanitizer,
@@ -62,7 +61,8 @@ object ShellExecutor {
                     outPrinter + additionalOutPrinter,
                     errPrinter + additionalErrPrinter,
                     inputStream,
-                    shellMapper
+                    shellMapper,
+                    envAdjuster
                 )
             }
         }
@@ -74,7 +74,6 @@ object ShellExecutor {
         command: String,
         osType: OsType = OsType.native,
         workingDirectory: OsPath? = null,
-        envAdjuster: EnvAdjuster = {},
         waitTimeMinutes: Int = 10,
         inheritInput: Boolean = false,
         inputSanitizer: Sanitizer = EMPTY_SANITIZER,
@@ -82,7 +81,8 @@ object ShellExecutor {
         outPrinter: List<PrintStream> = DEFAULT_OUT_PRINTERS,
         errPrinter: List<PrintStream> = DEFAULT_ERR_PRINTERS,
         inputStream: InputStream? = null,
-        shellMapper: Map<OsType, ShellType> = DEFAULT_SHELL_MAPPER
+        shellMapper: Map<OsType, ShellType> = DEFAULT_SHELL_MAPPER,
+        envAdjuster: EnvAdjuster = {}
     ): Int {
         val sanitizedCommand = inputSanitizer.sanitize(command)
 

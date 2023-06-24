@@ -15,7 +15,7 @@ data class OsPath(val osType: OsType, val pathType: PathType, val pathParts: Lis
     }
 
     fun resolve(vararg pathParts: String): OsPath {
-        return resolve(createOrThrow(osType, pathParts.joinToString(pathSeparator.toString())))
+        return resolve(createOrThrow(osType, *pathParts))
     }
 
     fun resolve(path: OsPath): OsPath {
