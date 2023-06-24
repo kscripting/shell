@@ -47,7 +47,7 @@ fun OsPath.readText(charset: Charset = Charsets.UTF_8): String = toNativePath().
 
 // OsPath accessors
 val OsPath.leaf
-    get(): String? = if (pathParts.isEmpty()) null else pathParts.last()
+    get(): String = if (pathParts.isEmpty()) "" else pathParts.last()
 
 val OsPath.root
     get(): String? = if (pathParts.isEmpty()) null else pathParts.first()

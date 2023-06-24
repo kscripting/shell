@@ -1,6 +1,6 @@
 package io.github.kscripting.shell.integration
 
-import io.github.kscripting.shell.integration.tools.TestAssertion.verify
+import io.github.kscripting.shell.integration.tools.ShellTestBase
 import io.github.kscripting.shell.integration.tools.TestContext
 import io.github.kscripting.shell.integration.tools.TestContext.execPath
 import io.github.kscripting.shell.integration.tools.TestContext.testPath
@@ -9,7 +9,7 @@ import io.github.kscripting.shell.util.Sanitizer
 import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
 
-class ShellExecutorTest : TestBase {
+class ShellExecutorTest : ShellTestBase {
     @Test
     @Tag("posix")
     @Tag("windows")

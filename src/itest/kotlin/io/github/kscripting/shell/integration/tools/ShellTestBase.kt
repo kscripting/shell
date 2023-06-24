@@ -1,12 +1,15 @@
 package io.github.kscripting.shell.integration.tools
 
-import io.github.kscripting.shell.integration.tools.TestContext.runProcess
+import io.github.kscripting.shell.ShellExecutor
+import io.github.kscripting.shell.integration.tools.TestContext.defaultInputSanitizer
+import io.github.kscripting.shell.integration.tools.TestContext.defaultOutputSanitizer
 import io.github.kscripting.shell.model.ProcessResult
 import io.github.kscripting.shell.process.EnvAdjuster
 import io.github.kscripting.shell.util.Sanitizer
+import org.junit.jupiter.api.BeforeAll
 import java.io.InputStream
 
-object TestAssertion {
+interface ShellTestBase {
     fun <T : Any> genericEquals(value: T) = GenericEquals(value)
 
     fun any() = AnyMatch()
@@ -23,7 +26,8 @@ object TestAssertion {
         outputSanitizer: Sanitizer? = null,
         inputStream: InputStream? = null,
         envAdjuster: EnvAdjuster = {}
-    ): ProcessResult = verify(command, exitCode, stdOut, eq(stdErr), inputSanitizer, outputSanitizer, inputStream, envAdjuster)
+    ): ProcessResult =
+        verify(command, exitCode, stdOut, eq(stdErr), inputSanitizer, outputSanitizer, inputStream, envAdjuster)
 
     fun verify(
         command: String,
@@ -34,7 +38,8 @@ object TestAssertion {
         outputSanitizer: Sanitizer? = null,
         inputStream: InputStream? = null,
         envAdjuster: EnvAdjuster = {}
-    ): ProcessResult = verify(command, exitCode, eq(stdOut), stdErr, inputSanitizer, outputSanitizer, inputStream, envAdjuster)
+    ): ProcessResult =
+        verify(command, exitCode, eq(stdOut), stdErr, inputSanitizer, outputSanitizer, inputStream, envAdjuster)
 
     fun verify(
         command: String,
@@ -45,7 +50,8 @@ object TestAssertion {
         outputSanitizer: Sanitizer? = null,
         inputStream: InputStream? = null,
         envAdjuster: EnvAdjuster = {}
-    ): ProcessResult = verify(command, exitCode, eq(stdOut), eq(stdErr), inputSanitizer, outputSanitizer, inputStream, envAdjuster)
+    ): ProcessResult =
+        verify(command, exitCode, eq(stdOut), eq(stdErr), inputSanitizer, outputSanitizer, inputStream, envAdjuster)
 
     fun verify(
         command: String,
@@ -68,5 +74,12 @@ object TestAssertion {
         println()
 
         return processResult
+    }
+
+    companion object : ShellTestCompanionBase() {
+        @BeforeAll
+        @JvmStatic
+        fun setUp() {
+        }
     }
 }

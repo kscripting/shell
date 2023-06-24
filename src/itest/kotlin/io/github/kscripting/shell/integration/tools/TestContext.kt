@@ -15,11 +15,11 @@ object TestContext {
     val execPath: OsPath = projectPath.resolve("build/shell_test/bin")
     val testPath: OsPath = projectPath.resolve("build/shell_test/tmp")
 
-    private val pathEnvName = if (osType.isWindowsLike()) "Path" else "PATH"
+    val pathEnvName = if (osType.isWindowsLike()) "Path" else "PATH"
     private val systemPath: String = System.getenv()[pathEnvName]!!
 
     private val pathSeparator: String = if (osType.isWindowsLike() || osType.isPosixHostedOnWindows()) ";" else ":"
-    private val envPath: String = "${execPath.convert(osType)}$pathSeparator$systemPath"
+    val envPath: String = "${execPath.convert(osType)}$pathSeparator$systemPath"
 
     val nl: String = System.getProperty("line.separator")
 
@@ -35,36 +35,6 @@ object TestContext {
         println("Env path       : $envPath")
 
         execPath.createDirectories()
-    }
-
-    fun runProcess(
-        command: String,
-        inputSanitizer: Sanitizer? = null,
-        outputSanitizer: Sanitizer? = null,
-        inputStream: InputStream? = null,
-        envAdjuster: EnvAdjuster
-    ): ProcessResult {
-        //In MSYS all quotes should be single quotes, otherwise content is interpreted e.g. backslashes.
-        //(MSYS bash interpreter is also replacing double quotes into the single quotes: see: bash -xc 'kscript "println(1+1)"')
-        val newCommand = when {
-            osType.isPosixHostedOnWindows() -> command.replace('"', '\'')
-            else -> command
-        }
-
-        fun internalEnvAdjuster(map: MutableMap<String, String>) {
-            map[pathEnvName] = envPath
-            envAdjuster(map)
-        }
-
-        return ShellExecutor.evalAndGobble(
-            newCommand,
-            osType,
-            null,
-            inputSanitizer = inputSanitizer ?: this.defaultInputSanitizer,
-            outputSanitizer = outputSanitizer ?: this.defaultOutputSanitizer,
-            inputStream = inputStream,
-            envAdjuster = ::internalEnvAdjuster
-        )
     }
 
     fun copyFile(source: String, target: OsPath) {
