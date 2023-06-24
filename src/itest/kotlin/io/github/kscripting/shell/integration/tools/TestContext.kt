@@ -30,7 +30,7 @@ object TestContext {
         println("nativeType     : ${OsType.native}")
         println("projectDir     : $projectPath")
         println("execDir        : ${execPath.convert(osType)}")
-        println("Kotlin version : ${ShellExecutor.evalAndGobble("kotlin -version", osType, null).stdout}")
+        println("Kotlin version : ${ShellExecutor.evalAndGobble("kotlin -version", osType).stdout}")
         println("Env path       : $pathEnvVariableCalculatedPath")
 
         execPath.createDirectories()
