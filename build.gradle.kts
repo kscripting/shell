@@ -1,9 +1,7 @@
-import org.jetbrains.kotlin.gradle.tasks.KotlinCompilationTask
-
-val kotlinVersion: String = "1.8.21"
+val kotlinVersion: String = "1.8.22"
 
 plugins {
-    kotlin("jvm") version "1.8.21"
+    kotlin("jvm") version "1.8.22"
     id("com.adarshr.test-logger") version "3.2.0"
     `maven-publish`
     signing
@@ -87,9 +85,36 @@ tasks.test {
     useJUnitPlatform()
 }
 
+val testToolsJar by tasks.creating(org.gradle.jvm.tasks.Jar::class) {
+    //archiveFileName.set("eulenspiegel-testHelpers-$version.jar")
+    include("io/github/kscripting/shell/integration/tools/*")
+    from(sourceSets["itest"].output)
+}
+
+val licencesSpec = Action<MavenPomLicenseSpec> {
+    license {
+        name.set("MIT License")
+        url.set("https://opensource.org/licenses/MIT")
+    }
+}
+
+val developersSpec = Action<MavenPomDeveloperSpec> {
+    developer {
+        id.set("aartiPl")
+        name.set("Marcin Kuszczak")
+        email.set("aarti@interia.pl")
+    }
+}
+
+val scmSpec = Action<MavenPomScm> {
+    connection.set("scm:git:git://https://github.com/kscripting/shell.git")
+    developerConnection.set("scm:git:ssh:https://github.com/kscripting/shell.git")
+    url.set("https://github.com/kscripting/shell")
+}
+
 publishing {
     publications {
-        create<MavenPublication>("mavenJava") {
+        create<MavenPublication>("shell") {
             artifactId = "shell"
             from(components["java"])
 
@@ -98,26 +123,26 @@ publishing {
                 description.set("Shell - library for interoperability with different system shells")
                 url.set("https://github.com/kscripting/shell")
 
-                licenses {
-                    license {
-                        name.set("MIT License")
-                        url.set("https://opensource.org/licenses/MIT")
-                    }
-                }
-                developers {
-                    developer {
-                        id.set("aartiPl")
-                        name.set("Marcin Kuszczak")
-                        email.set("aarti@interia.pl")
-                    }
-                }
-                scm {
-                    connection.set("scm:git:git://https://github.com/kscripting/shell.git")
-                    developerConnection.set("scm:git:ssh:https://github.com/kscripting/shell.git")
-                    url.set("https://github.com/kscripting/shell")
-                }
+                licenses(licencesSpec)
+                developers(developersSpec)
+                scm(scmSpec)
             }
         }
+
+//        create<MavenPublication>("shellTest") {
+//            artifactId = "shell-test"
+//            artifact(testToolsJar)
+//
+//            pom {
+//                name.set("shell-test")
+//                description.set("Shell Tests - library for testing shell apps")
+//                url.set("https://github.com/kscripting/shell")
+//
+//                licenses(licencesSpec)
+//                developers(developersSpec)
+//                scm(scmSpec)
+//            }
+//        }
     }
 
     repositories {
@@ -135,7 +160,8 @@ publishing {
 }
 
 signing {
-    sign(publishing.publications["mavenJava"])
+    sign(publishing.publications["shell"])
+//    sign(publishing.publications["shellTest"])
 }
 
 dependencies {

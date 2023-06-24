@@ -61,9 +61,10 @@ object ProcessRunner {
                 }.start()
 
             // My own explanation is here: https://github.com/lxc/lxd/issues/6856
-            if (!inheritInput) {
-                inputStream?.transferTo(process.outputStream)
-                process.outputStream.close()
+            val outputStream = process.outputStream
+            if (!inheritInput && outputStream != null) {
+                inputStream?.transferTo(outputStream)
+                outputStream.close()
             }
 
             // we need to gobble the streams to prevent that the internal pipes hit their respective buffer limits, which
