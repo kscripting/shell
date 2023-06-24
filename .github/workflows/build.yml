@@ -1,0 +1,104 @@
+name: build
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - ubuntu-20.04
+          - macos-12
+          - windows-2022
+        variant:
+          - posix
+        include:
+          - os: windows-2022
+            variant: cygwin
+          - os: windows-2022
+            variant: cmd
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Setup Java
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'zulu'
+          java-version: '11'
+
+      - name: Setup Kotlin
+        uses: fwilhe2/setup-kotlin@main
+        with:
+          version: 1.7.21
+
+      - name: Install dependencies for ${{ runner.os }}
+        shell: bash
+        run: |
+          if [ "$RUNNER_OS" == "Windows" ]; then
+            choco install zip
+            # Overwrite the WSL bash.exe
+            # cp /c/msys64/usr/bin/bash.exe /c/Windows/System32/bash.exe
+            mv /c/Windows/System32/bash.exe /c/Windows/System32/wsl-bash.exe
+          fi
+
+      - name: Run tests for Posix (and MSYS on Windows)
+        if: matrix.variant == 'posix'
+        shell: bash
+        run: |
+          # For Windows this action is running MSYS Os type
+          
+          echo "OsType:         $OSTYPE"
+          
+          ./gradlew clean assemble test || { echo 'Compilation or Unit tests failed' ; exit 1; }
+          
+          if [[ "$OSTYPE" == "linux"* ]]; then
+            echo "Linux test..."
+            ./gradlew -DosType=$OSTYPE -DincludeTags='posix | linux' integrationTest
+          elif [[ "$OSTYPE" == "darwin"* ]]; then
+            echo "MacOs test..."
+            ./gradlew -DosType=$OSTYPE -DincludeTags='posix | macos' integrationTest
+          elif [[ "$OSTYPE" == "cygwin" ]]; then
+            echo "Cygwin test..."
+            ./gradlew -DosType=$OSTYPE -DincludeTags='posix | cygwin' integrationTest
+          elif [[ "$OSTYPE" == "msys" ]]; then
+            echo "MSys test..."
+            ./gradlew -DosType=$OSTYPE -DincludeTags='posix | msys' integrationTest
+          elif [[ "$OSTYPE" == "freebsd"* ]]; then
+            echo "FreeBsd test..."
+            ./gradlew -DosType=$OSTYPE -DincludeTags='posix' integrationTest
+          else
+            echo "Unknown OS"
+            exit 1
+          fi
+
+      - name: Run tests specific for Windows (cmd shell)
+        if: matrix.variant == 'cmd'
+        shell: cmd
+        run: |
+          echo "Windows test..."
+          .\gradlew.bat -DosType=windows -DincludeTags="windows" clean assemble test integrationTest
+
+      - name: Install Cygwin (only Windows)
+        if: matrix.variant == 'cygwin'
+        uses: egor-tensin/setup-cygwin@v3
+
+      - name: Run tests specific for Cygwin
+        if: matrix.variant == 'cygwin'
+        shell: C:\tools\cygwin\bin\bash.exe --login --norc -eo pipefail -o igncr '{0}'
+        run: |
+          echo $OSTYPE
+          echo "Cygwin test..."
+          echo "Changing directory to $GITHUB_WORKSPACE ..."
+          cd $GITHUB_WORKSPACE
+          ./gradlew clean assemble test || { echo 'Compilation or Unit tests failed' ; exit 1; }
+          ./gradlew -DosType=$OSTYPE -DincludeTags='posix | cygwin' integrationTest
