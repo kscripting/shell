@@ -21,7 +21,10 @@ object TestContext {
     private val pathSeparator: String = if (osType.isWindowsLike() || osType.isPosixHostedOnWindows()) ";" else ":"
     val envPath: String = "${execPath.convert(osType)}$pathSeparator$systemPath"
 
-    val nl: String = System.getProperty("line.separator")
+    val nl: String = when {
+        osType.isPosixHostedOnWindows() -> "\n"
+        else -> System.getProperty("line.separator")
+    }
 
     val defaultInputSanitizer = Sanitizer(listOf("[bs]" to "\\", "[nl]" to nl, "[tb]" to "\t"))
     val defaultOutputSanitizer = defaultInputSanitizer.swapped()
