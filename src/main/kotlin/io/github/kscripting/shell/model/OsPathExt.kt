@@ -18,6 +18,9 @@ fun Path.toOsPath(): OsPath = OsPath.createOrThrow(OsType.native, absolutePathSt
 fun URI.toOsPath(): OsPath =
     if (this.scheme == "file") File(this).toOsPath() else throw IllegalArgumentException("Invalid conversion from URL to OsPath")
 
+fun String.toOsPath(osType: OsType = OsType.native): OsPath =
+    OsPath.createOrThrow(osType, this)
+
 
 // Conversion from OsPath
 

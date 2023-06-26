@@ -42,6 +42,8 @@ data class OsPath(val osType: OsType, val pathType: PathType, val pathParts: Lis
     }
 
     //Not all conversions make sense: only Windows to CygWin and Msys and vice versa
+    //TODO: conversion of paths like /usr  /opt etc. is wrong; it needs also windows root of installation cygwin/msys
+    // base path: cygpath -w /
     fun convert(targetOsType: OsType): OsPath {
         if (this.osType == targetOsType) {
             return this
@@ -136,11 +138,9 @@ data class OsPath(val osType: OsType, val pathType: PathType, val pathParts: Lis
             '\\'
         }
 
-        fun createOrThrow(vararg pathParts: String): OsPath =
-            createOrThrow(OsType.native, pathParts.toList())
+        fun createOrThrow(vararg pathParts: String): OsPath = createOrThrow(OsType.native, pathParts.toList())
 
-        fun createOrThrow(osType: OsType, vararg pathParts: String): OsPath =
-            createOrThrow(osType, pathParts.toList())
+        fun createOrThrow(osType: OsType, vararg pathParts: String): OsPath = createOrThrow(osType, pathParts.toList())
 
         fun createOrThrow(osType: OsType, pathParts: List<String>): OsPath {
             return when (val result = internalCreate(osType, pathParts)) {
@@ -149,11 +149,9 @@ data class OsPath(val osType: OsType, val pathType: PathType, val pathParts: Lis
             }
         }
 
-        fun create(vararg pathParts: String): OsPath? =
-            create(OsType.native, pathParts.toList())
+        fun create(vararg pathParts: String): OsPath? = create(OsType.native, pathParts.toList())
 
-        fun create(osType: OsType, vararg pathParts: String): OsPath? =
-            create(osType, pathParts.toList())
+        fun create(osType: OsType, vararg pathParts: String): OsPath? = create(osType, pathParts.toList())
 
         fun create(osType: OsType, pathParts: List<String>): OsPath? {
             return when (val result = internalCreate(osType, pathParts)) {
@@ -163,7 +161,7 @@ data class OsPath(val osType: OsType, val pathType: PathType, val pathParts: Lis
         }
 
         //Relaxed validation:
-        //1. It doesn't matter if there is '/' or '\' used as path separator - both are treated he same
+        //1. It doesn't matter if there is '/' or '\' used as path separator - both are treated the same
         //2. Duplicated or trailing slashes '/' and backslashes '\' are just ignored
         private fun internalCreate(osType: OsType, pathParts: List<String>): Either<String, OsPath> {
             val pathSeparatorCharacter = resolvePathSeparator(osType)
@@ -175,9 +173,12 @@ data class OsPath(val osType: OsType, val pathType: PathType, val pathParts: Lis
             val rootElementSizeInInputPath: Int
             val pathType: PathType
 
+            var isUndefined = false
+
             when {
                 pathPartsResolved.isEmpty() -> {
-                    pathType = PathType.UNDEFINED
+                    pathType = PathType.RELATIVE
+                    isUndefined = true
                     rootElementSizeInInputPath = 0
                 }
 
@@ -207,7 +208,8 @@ data class OsPath(val osType: OsType, val pathType: PathType, val pathParts: Lis
 
                 else -> {
                     //This is undefined path
-                    pathType = PathType.UNDEFINED
+                    pathType = PathType.RELATIVE
+                    isUndefined = true
                     rootElementSizeInInputPath = 0
                 }
             }
@@ -217,6 +219,10 @@ data class OsPath(val osType: OsType, val pathType: PathType, val pathParts: Lis
 
             if (forbiddenCharacter != null) {
                 return "Invalid character '$forbiddenCharacter' in path '$path'".left()
+            }
+
+            if (isUndefined) {
+                pathPartsResolved.add(0, ".")
             }
 
             //Remove empty path parts - there were duplicated or trailing slashes / backslashes in initial path
@@ -243,12 +249,9 @@ data class OsPath(val osType: OsType, val pathType: PathType, val pathParts: Lis
             // /a/../ --> /
 
             val newParts = mutableListOf<String>()
-            var index = 0
+            var index = 1
 
-            if (pathType != PathType.UNDEFINED) {
-                newParts.add(pathParts[0])
-                index = 1
-            }
+            newParts.add(pathParts[0])
 
             while (index < pathParts.size) {
                 if (pathParts[index] == ".") {
