@@ -330,7 +330,7 @@ class OsPathTest {
     @Test
     fun `Special cases`() {
         assertThat(OsPath.createOrThrow(OsType.LINUX)).isEqualTo(
-            OsPath(OsType.LINUX, PathType.RELATIVE, listOf("."), '/')
+            OsPath(OsType.LINUX, "", PathType.RELATIVE, listOf("."))
         )
     }
 
@@ -341,6 +341,10 @@ class OsPathTest {
         val p = OsPath.createOrThrow(OsType.MSYS, "/c/home")
         val p1 = OsPath.createOrThrow(OsType.MSYS, "admin/.kscript")
 
-        assertThat(p / p1).isEqualTo(OsPath.createOrThrow(OsType.MSYS, "/c/home/admin/.kscript"))
+        assertThat(p / p1).let {
+            it.prop(OsPath::pathParts).isEqualTo(listOf("/", "c", "home", "admin", ".kscript"))
+            it.prop(OsPath::pathType).isEqualTo(PathType.ABSOLUTE)
+            it.prop(OsPath::osType).isEqualTo(OsType.MSYS)
+        }
     }
 }

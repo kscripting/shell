@@ -56,7 +56,7 @@ val OsPath.root
     get(): String? = if (pathParts.isEmpty()) null else pathParts.first()
 
 val OsPath.rootOsPath
-    get():OsPath = if (root == null) OsPath.createOrThrow(osType) else OsPath.createOrThrow(osType, root!!)
+    get():OsPath = if (isRelative) OsPath.createOrThrow(osType) else OsPath.createOrThrow(osType, root)
 
 val OsPath.parent
     get(): OsPath = OsPath.createOrThrow(osType, pathParts.dropLast(1))

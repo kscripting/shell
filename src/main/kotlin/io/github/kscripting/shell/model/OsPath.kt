@@ -5,7 +5,12 @@ import arrow.core.left
 import arrow.core.right
 
 //Path representation for different OSes
-data class OsPath(val osType: OsType, val pathType: PathType, val pathParts: List<String>, val pathSeparator: Char) {
+@Suppress("MemberVisibilityCanBePrivate")
+data class OsPath(val osType: OsType, val root: String, val pathType: PathType, val pathParts: List<String>) {
+    val isRelative: Boolean get() = root.isEmpty()
+    val isAbsolute: Boolean get() = !isRelative
+    val pathSeparator: Char get() = if (osType.isWindowsLike()) '\\' else '/'
+
     operator fun div(osPath: OsPath): OsPath {
         return this.resolve(osPath)
     }
@@ -38,7 +43,7 @@ data class OsPath(val osType: OsType, val pathType: PathType, val pathParts: Lis
             is Either.Left -> throw IllegalArgumentException(result.value)
         }
 
-        return OsPath(osType, pathType, normalizedPath, pathSeparator)
+        return OsPath(osType, "", pathType, normalizedPath)
     }
 
     //Not all conversions make sense: only Windows to CygWin and Msys and vice versa
@@ -50,7 +55,7 @@ data class OsPath(val osType: OsType, val pathType: PathType, val pathParts: Lis
         }
 
         if ((this.osType.isPosixLike() && targetOsType.isPosixLike()) || (this.osType.isWindowsLike() && targetOsType.isWindowsLike())) {
-            return OsPath(targetOsType, pathType, pathParts, pathSeparator)
+            return OsPath(targetOsType, "", pathType, pathParts)
         }
 
         val toPosix = osType.isWindowsLike() && targetOsType.isPosixHostedOnWindows()
@@ -101,7 +106,7 @@ data class OsPath(val osType: OsType, val pathType: PathType, val pathParts: Lis
             else -> throw IllegalArgumentException("Invalid conversion: ${pathType.name} to ${targetOsType.name}")
         }
 
-        return OsPath(targetOsType, pathType, newParts, resolvePathSeparator(targetOsType))
+        return OsPath(targetOsType, "", pathType, newParts)
     }
 
     fun stringPath(): String {
@@ -132,11 +137,8 @@ data class OsPath(val osType: OsType, val pathType: PathType, val pathParts: Lis
 
         private const val alphaChars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
 
-        fun resolvePathSeparator(osType: OsType) = if (osType.isPosixLike()) {
-            '/'
-        } else {
-            '\\'
-        }
+        private val windowsDriveRegex = "^([a-zA-Z]:(?=\\\\)|\\\\\\\\(?:[^\\*:<>?\\\\\\/|]+\\\\[^\\*:<>?\\\\\\/|]+|\\?\\\\(?:[a-zA-Z]:(?=\\\\)|(?:UNC\\\\)?[^\\*:<>?\\\\\\/|]+\\\\[^\\*:<>?\\\\\\/|]+)))".toRegex()
+
 
         fun createOrThrow(vararg pathParts: String): OsPath = createOrThrow(OsType.native, pathParts.toList())
 
@@ -164,9 +166,24 @@ data class OsPath(val osType: OsType, val pathType: PathType, val pathParts: Lis
         //1. It doesn't matter if there is '/' or '\' used as path separator - both are treated the same
         //2. Duplicated or trailing slashes '/' and backslashes '\' are just ignored
         private fun internalCreate(osType: OsType, pathParts: List<String>): Either<String, OsPath> {
-            val pathSeparatorCharacter = resolvePathSeparator(osType)
+            val path = pathParts.joinToString("/")
 
-            val path = pathParts.joinToString(pathSeparatorCharacter.toString())
+            //Detect root
+            val root: String = when {
+                path.startsWith("~") -> "~"
+                osType.isPosixLike() && path.startsWith("/") -> "/"
+                osType.isWindowsLike() -> {
+                    val match = windowsDriveRegex.find(path)
+                    match?.groupValues?.get(1) ?: ""
+                }
+                else -> ""
+            }
+
+            //TODO: https://learn.microsoft.com/pl-pl/dotnet/standard/io/file-path-formats
+            // https://regex101.com/r/aU4yZ7/1
+            println("root: '$root'")
+
+            //.drop(root.length)
             val pathPartsResolved = path.split('/', '\\').toMutableList()
 
             //Validate root element of path and find out if it is absolute or relative
@@ -233,7 +250,7 @@ data class OsPath(val osType: OsType, val pathType: PathType, val pathParts: Lis
                 is Either.Left -> return result.value.left()
             }
 
-            return OsPath(osType, pathType, normalizedPath, pathSeparatorCharacter).right()
+            return OsPath(osType, root, pathType, normalizedPath).right()
         }
 
         fun normalize(path: String, pathParts: List<String>, pathType: PathType): Either<String, List<String>> {
