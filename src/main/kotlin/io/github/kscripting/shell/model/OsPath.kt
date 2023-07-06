@@ -25,6 +25,10 @@ data class OsPath(val osType: OsType, val root: String, val pathParts: List<Stri
     }
 
     fun resolve(path: OsPath): OsPath {
+        if (path == emptyOsPath) {
+            return this
+        }
+
         require(osType == path.osType) {
             "Paths from different OS's: '${this.osType.name}' path can not be resolved with '${path.osType.name}' path"
         }
@@ -62,7 +66,7 @@ data class OsPath(val osType: OsType, val root: String, val pathParts: List<Stri
         val toNative = osType.isPosixHostedOnWindows() && targetOsType.isWindowsLike()
 
         require(toHosted || toNative) {
-            "Only conversion between Windows and Posix hosted on Windows paths are supported"
+            "Only paths conversion between Windows and Posix hosted on Windows are supported"
         }
 
         val newParts = mutableListOf<String>()
@@ -114,8 +118,11 @@ data class OsPath(val osType: OsType, val root: String, val pathParts: List<Stri
     override fun toString(): String = stringPath()
 
     companion object {
+        val emptyOsPath = OsPath(OsType.ANY, "[empty]", emptyList())
+
         //https://stackoverflow.com/questions/1976007/what-characters-are-forbidden-in-windows-and-linux-directory-names
         //The rule here is more strict than necessary, but it is at least good practice to follow such a rule.
+        //TODO: should I remove validation all together? It allows e.g. for globbing with asterisks and question marks
         private val forbiddenCharacters = buildSet {
             add('<')
             add('>')
@@ -128,8 +135,6 @@ data class OsPath(val osType: OsType, val root: String, val pathParts: List<Stri
                 add(i.toChar())
             }
         }
-
-        private const val alphaChars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
 
         private val windowsDriveRegex =
             "^([a-zA-Z]:(?=[\\\\/])|\\\\\\\\(?:[^*:<>?\\\\/|]+\\\\[^*:<>?\\\\/|]+|\\?\\\\(?:[a-zA-Z]:(?=\\\\)|(?:UNC\\\\)?[^*:<>?\\\\/|]+\\\\[^*:<>?\\\\/|]+)))".toRegex()
@@ -165,7 +170,7 @@ data class OsPath(val osType: OsType, val root: String, val pathParts: List<Stri
 
             //Detect root
             val root: String = when {
-                path.startsWith("~") -> "~"
+                path.startsWith("~/") || path.startsWith("~\\") -> "~"
                 osType.isPosixLike() && path.startsWith("/") -> "/"
                 osType.isWindowsLike() -> {
                     val match = windowsDriveRegex.find(path)
@@ -178,7 +183,6 @@ data class OsPath(val osType: OsType, val root: String, val pathParts: List<Stri
 
             //TODO: https://learn.microsoft.com/pl-pl/dotnet/standard/io/file-path-formats
             // https://regex101.com/r/aU4yZ7/1
-            println("root: '$root'")
 
             //Remove empty path parts - there were duplicated or trailing slashes / backslashes in initial path
             val pathPartsResolved = path.drop(root.length).split('/', '\\').filter { it.isNotBlank() }
@@ -210,7 +214,7 @@ data class OsPath(val osType: OsType, val root: String, val pathParts: List<Stri
             // /../ --> invalid (above root)
             // /a/../ --> /
 
-            val pathType: PathType = if (root.isNotEmpty()) PathType.ABSOLUTE else PathType.RELATIVE
+            val isAbsolute: Boolean = root.isNotEmpty()
 
             val newParts = mutableListOf<String>()
             var index = 0
@@ -220,7 +224,7 @@ data class OsPath(val osType: OsType, val root: String, val pathParts: List<Stri
                     //Just skip . without adding it to newParts
                 } else if (pathParts[index] == "..") {
 
-                    if (pathType == PathType.ABSOLUTE && newParts.size == 1) {
+                    if (isAbsolute && newParts.size == 1) {
                         return "Path after normalization goes beyond root element: '$root'".left()
                     }
 
