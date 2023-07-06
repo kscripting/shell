@@ -7,10 +7,11 @@ import arrow.core.right
 //Path representation for different OSes
 @Suppress("MemberVisibilityCanBePrivate")
 data class OsPath(val osType: OsType, val root: String, val pathParts: List<String>) {
+    val isEmpty: Boolean get() = this === emptyPath
     val isRelative: Boolean get() = root.isEmpty()
     val isAbsolute: Boolean get() = !isRelative
-    val isEmpty: Boolean get() = root.isEmpty() && pathParts.isEmpty()
     val pathSeparator: Char get() = if (osType.isWindowsLike()) '\\' else '/'
+    val path get(): String = root + pathParts.joinToString(pathSeparator.toString()) { it }
 
     operator fun div(osPath: OsPath): OsPath {
         return this.resolve(osPath)
@@ -24,22 +25,22 @@ data class OsPath(val osType: OsType, val root: String, val pathParts: List<Stri
         return resolve(createOrThrow(osType, *pathParts))
     }
 
-    fun resolve(path: OsPath): OsPath {
-        if (path == emptyOsPath) {
+    fun resolve(osPath: OsPath): OsPath {
+        if (osPath.isEmpty) {
             return this
         }
 
-        require(osType == path.osType) {
-            "Paths from different OS's: '${this.osType.name}' path can not be resolved with '${path.osType.name}' path"
+        require(osType == osPath.osType || osType == OsType.ANY) {
+            "Paths from different OS's: '${this.osType.name}' path can not be resolved with '${osPath.osType.name}' path"
         }
 
-        require(path.isRelative) {
-            "Can not resolve absolute or relative path '${stringPath()}' using absolute path '${path.stringPath()}'"
+        require(osPath.isRelative) {
+            "Can not resolve absolute or relative path '${path}' using absolute path '${osPath.path}'"
         }
 
         val newPathParts = buildList {
             addAll(pathParts)
-            addAll(path.pathParts)
+            addAll(osPath.pathParts)
         }
 
         val normalizedPath = when (val result = normalize(this.root, newPathParts)) {
@@ -112,17 +113,15 @@ data class OsPath(val osType: OsType, val root: String, val pathParts: List<Stri
         return OsPath(targetOsType, newRoot, newParts)
     }
 
-    fun stringPath(): String = root + pathParts.joinToString(pathSeparator.toString()) { it }
-
-
-    override fun toString(): String = stringPath()
+    override fun toString(): String = "$path [${osType.name}]"
 
     companion object {
-        val emptyOsPath = OsPath(OsType.ANY, "[empty]", emptyList())
+        val emptyPath = OsPath(OsType.ANY, "", emptyList())
 
         //https://stackoverflow.com/questions/1976007/what-characters-are-forbidden-in-windows-and-linux-directory-names
         //The rule here is more strict than necessary, but it is at least good practice to follow such a rule.
         //TODO: should I remove validation all together? It allows e.g. for globbing with asterisks and question marks
+        // maybe separate function in FileSystem: validate?
         private val forbiddenCharacters = buildSet {
             add('<')
             add('>')
@@ -184,19 +183,23 @@ data class OsPath(val osType: OsType, val root: String, val pathParts: List<Stri
             //TODO: https://learn.microsoft.com/pl-pl/dotnet/standard/io/file-path-formats
             // https://regex101.com/r/aU4yZ7/1
 
-            //Remove empty path parts - there were duplicated or trailing slashes / backslashes in initial path
+            //Remove also empty path parts - there were duplicated or trailing slashes / backslashes in initial path
             val pathPartsResolved = path.drop(root.length).split('/', '\\').filter { it.isNotBlank() }
+
+            val normalizedPath = when (val result = normalize(root, pathPartsResolved)) {
+                is Either.Right -> result.value
+                is Either.Left -> return result.value.left()
+            }
+
+            if (root.isEmpty() && normalizedPath.isEmpty()) {
+                return emptyPath.right()
+            }
 
             //Validate root element of path and find out if it is absolute or relative
             val forbiddenCharacter = path.substring(root.length).find { forbiddenCharacters.contains(it) }
 
             if (forbiddenCharacter != null) {
                 return "Invalid character '$forbiddenCharacter' in path '$path'".left()
-            }
-
-            val normalizedPath = when (val result = normalize(root, pathPartsResolved)) {
-                is Either.Right -> result.value
-                is Either.Left -> return result.value.left()
             }
 
             return OsPath(osType, root, normalizedPath).right()

@@ -12,7 +12,7 @@ class OsPathTest {
             it.prop(OsPath::root).isEqualTo("/")
             it.prop(OsPath::pathParts).isEqualTo(emptyList())
             it.prop(OsPath::isAbsolute).isTrue()
-            it.prop(OsPath::isEmpty).isFalse()
+            it.prop(OsPath::isRelative).isFalse()
             it.prop(OsPath::osType).isEqualTo(OsType.LINUX)
         }
 
@@ -34,7 +34,8 @@ class OsPathTest {
             it.prop(OsPath::root).isEqualTo("")
             it.prop(OsPath::pathParts).isEqualTo(emptyList())
             it.prop(OsPath::isRelative).isTrue()
-            it.prop(OsPath::osType).isEqualTo(OsType.LINUX)
+            it.prop(OsPath::isAbsolute).isFalse()
+            it.prop(OsPath::osType).isEqualTo(OsType.ANY)
         }
 
         assertThat(OsPath.createOrThrow(OsType.LINUX, "file.txt")).let {
@@ -48,7 +49,7 @@ class OsPathTest {
             it.prop(OsPath::root).isEqualTo("")
             it.prop(OsPath::pathParts).isEqualTo(emptyList())
             it.prop(OsPath::isRelative).isTrue()
-            it.prop(OsPath::osType).isEqualTo(OsType.LINUX)
+            it.prop(OsPath::osType).isEqualTo(OsType.ANY)
         }
 
         assertThat(OsPath.createOrThrow(OsType.LINUX, "../home/admin/.kscript")).let {
@@ -125,43 +126,42 @@ class OsPathTest {
 
     @Test
     fun `Test Linux stringPath`() {
-        assertThat(OsPath.createOrThrow(OsType.LINUX, "/home/admin/.kscript").stringPath())
+        assertThat(OsPath.createOrThrow(OsType.LINUX, "/home/admin/.kscript").path)
             .isEqualTo("/home/admin/.kscript")
-        assertThat(OsPath.createOrThrow(OsType.LINUX, "/a/b/c/../d/script").stringPath()).isEqualTo("/a/b/d/script")
-        assertThat(OsPath.createOrThrow(OsType.LINUX, "./././../../script").stringPath()).isEqualTo("../../script")
-        assertThat(OsPath.createOrThrow(OsType.LINUX, "script/file.txt").stringPath()).isEqualTo("script/file.txt")
+        assertThat(OsPath.createOrThrow(OsType.LINUX, "/a/b/c/../d/script").path).isEqualTo("/a/b/d/script")
+        assertThat(OsPath.createOrThrow(OsType.LINUX, "./././../../script").path).isEqualTo("../../script")
+        assertThat(OsPath.createOrThrow(OsType.LINUX, "script/file.txt").path).isEqualTo("script/file.txt")
     }
 
     @Test
     fun `Test Linux resolve`() {
         assertThat(
             OsPath.createOrThrow(OsType.LINUX, "/").resolve(OsPath.createOrThrow(OsType.LINUX, "./.kscript/"))
-                .stringPath()
+                .path
         ).isEqualTo("/.kscript")
 
         assertThat(
             OsPath.createOrThrow(OsType.LINUX, "/home/admin/")
-                .resolve(OsPath.createOrThrow(OsType.LINUX, "./.kscript/")).stringPath()
+                .resolve(OsPath.createOrThrow(OsType.LINUX, "./.kscript/")).path
         ).isEqualTo("/home/admin/.kscript")
 
         assertThat(
             OsPath.createOrThrow(OsType.LINUX, "./home/admin/")
-                .resolve(OsPath.createOrThrow(OsType.LINUX, "./.kscript/")).stringPath()
+                .resolve(OsPath.createOrThrow(OsType.LINUX, "./.kscript/")).path
         ).isEqualTo("home/admin/.kscript")
 
         assertThat(
             OsPath.createOrThrow(OsType.LINUX, "../home/admin/")
-                .resolve(OsPath.createOrThrow(OsType.LINUX, "./.kscript/")).stringPath()
+                .resolve(OsPath.createOrThrow(OsType.LINUX, "./.kscript/")).path
         ).isEqualTo("../home/admin/.kscript")
 
         assertThat(
             OsPath.createOrThrow(OsType.LINUX, "..").resolve(OsPath.createOrThrow(OsType.LINUX, "./.kscript/"))
-                .stringPath()
+                .path
         ).isEqualTo("../.kscript")
 
         assertThat(
-            OsPath.createOrThrow(OsType.LINUX, ".").resolve(OsPath.createOrThrow(OsType.LINUX, "./.kscript/"))
-                .stringPath()
+            OsPath.createOrThrow(OsType.LINUX, ".").resolve(OsPath.createOrThrow(OsType.LINUX, "./.kscript/")).path
         ).isEqualTo(".kscript")
 
         assertThat {
@@ -197,7 +197,7 @@ class OsPathTest {
             it.prop(OsPath::root).isEqualTo("")
             it.prop(OsPath::pathParts).isEqualTo(emptyList())
             it.prop(OsPath::isRelative).isTrue()
-            it.prop(OsPath::osType).isEqualTo(OsType.WINDOWS)
+            it.prop(OsPath::osType).isEqualTo(OsType.ANY)
         }
 
         assertThat(OsPath.createOrThrow(OsType.WINDOWS, "file.txt")).let {
@@ -211,7 +211,7 @@ class OsPathTest {
             it.prop(OsPath::root).isEqualTo("")
             it.prop(OsPath::pathParts).isEqualTo(emptyList())
             it.prop(OsPath::isRelative).isTrue()
-            it.prop(OsPath::osType).isEqualTo(OsType.WINDOWS)
+            it.prop(OsPath::osType).isEqualTo(OsType.ANY)
         }
 
         assertThat(OsPath.createOrThrow(OsType.WINDOWS, ".\\home\\admin\\.kscript")).let {
@@ -294,16 +294,16 @@ class OsPathTest {
     @Test
     fun `Test Windows stringPath`() {
         assertThat(
-            OsPath.createOrThrow(OsType.WINDOWS, "C:\\home\\admin\\.kscript").stringPath()
+            OsPath.createOrThrow(OsType.WINDOWS, "C:\\home\\admin\\.kscript").path
         ).isEqualTo("C:\\home\\admin\\.kscript")
         assertThat(
-            OsPath.createOrThrow(OsType.WINDOWS, "c:\\a\\b\\c\\..\\d\\script").stringPath()
+            OsPath.createOrThrow(OsType.WINDOWS, "c:\\a\\b\\c\\..\\d\\script").path
         ).isEqualTo("c:\\a\\b\\d\\script")
         assertThat(
-            OsPath.createOrThrow(OsType.WINDOWS, ".\\.\\.\\..\\..\\script").stringPath()
+            OsPath.createOrThrow(OsType.WINDOWS, ".\\.\\.\\..\\..\\script").path
         ).isEqualTo("..\\..\\script")
         assertThat(
-            OsPath.createOrThrow(OsType.WINDOWS, "script\\file.txt").stringPath()
+            OsPath.createOrThrow(OsType.WINDOWS, "script\\file.txt").path
         ).isEqualTo("script\\file.txt")
     }
 
@@ -312,44 +312,44 @@ class OsPathTest {
     @Test
     fun `Test Windows to Cygwin`() {
         assertThat(
-            OsPath.createOrThrow(OsType.WINDOWS, "C:\\home\\admin\\.kscript").convert(OsType.CYGWIN).stringPath()
+            OsPath.createOrThrow(OsType.WINDOWS, "C:\\home\\admin\\.kscript").convert(OsType.CYGWIN).path
         ).isEqualTo("/cygdrive/c/home/admin/.kscript")
 
         assertThat(
-            OsPath.createOrThrow(OsType.WINDOWS, "..\\home\\admin\\.kscript").convert(OsType.CYGWIN).stringPath()
+            OsPath.createOrThrow(OsType.WINDOWS, "..\\home\\admin\\.kscript").convert(OsType.CYGWIN).path
         ).isEqualTo("../home/admin/.kscript")
     }
 
     @Test
     fun `Test Cygwin to Windows`() {
         assertThat(
-            OsPath.createOrThrow(OsType.CYGWIN, "/cygdrive/c/home/admin/.kscript").convert(OsType.WINDOWS).stringPath()
+            OsPath.createOrThrow(OsType.CYGWIN, "/cygdrive/c/home/admin/.kscript").convert(OsType.WINDOWS).path
         ).isEqualTo("c:\\home\\admin\\.kscript")
 
         assertThat(
-            OsPath.createOrThrow(OsType.CYGWIN, "../home/admin/.kscript").convert(OsType.WINDOWS).stringPath()
+            OsPath.createOrThrow(OsType.CYGWIN, "../home/admin/.kscript").convert(OsType.WINDOWS).path
         ).isEqualTo("..\\home\\admin\\.kscript")
     }
 
     @Test
     fun `Test Windows to MSys`() {
         assertThat(
-            OsPath.createOrThrow(OsType.WINDOWS, "C:\\home\\admin\\.kscript").convert(OsType.MSYS).stringPath()
+            OsPath.createOrThrow(OsType.WINDOWS, "C:\\home\\admin\\.kscript").convert(OsType.MSYS).path
         ).isEqualTo("/c/home/admin/.kscript")
 
         assertThat(
-            OsPath.createOrThrow(OsType.WINDOWS, "..\\home\\admin\\.kscript").convert(OsType.MSYS).stringPath()
+            OsPath.createOrThrow(OsType.WINDOWS, "..\\home\\admin\\.kscript").convert(OsType.MSYS).path
         ).isEqualTo("../home/admin/.kscript")
     }
 
     @Test
     fun `Test MSys to Windows`() {
         assertThat(
-            OsPath.createOrThrow(OsType.MSYS, "/c/home/admin/.kscript").convert(OsType.WINDOWS).stringPath()
+            OsPath.createOrThrow(OsType.MSYS, "/c/home/admin/.kscript").convert(OsType.WINDOWS).path
         ).isEqualTo("c:\\home\\admin\\.kscript")
 
         assertThat(
-            OsPath.createOrThrow(OsType.MSYS, "../home/admin/.kscript").convert(OsType.WINDOWS).stringPath()
+            OsPath.createOrThrow(OsType.MSYS, "../home/admin/.kscript").convert(OsType.WINDOWS).path
         ).isEqualTo("..\\home\\admin\\.kscript")
     }
 
@@ -361,9 +361,9 @@ class OsPathTest {
         assertThat(OsPath.createOrThrow(OsType.LINUX)).let {
             it.prop(OsPath::root).isEqualTo("")
             it.prop(OsPath::pathParts).isEqualTo(emptyList())
+            it.prop(OsPath::isRelative).isTrue()
             it.prop(OsPath::isAbsolute).isFalse()
-            it.prop(OsPath::isEmpty).isTrue()
-            it.prop(OsPath::osType).isEqualTo(OsType.LINUX)
+            it.prop(OsPath::osType).isEqualTo(OsType.ANY)
         }
     }
 

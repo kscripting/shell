@@ -24,7 +24,7 @@ fun String.toOsPath(osType: OsType = OsType.native): OsPath =
 
 // Conversion from OsPath
 
-fun OsPath.toNativePath(): Path = Paths.get(toNativeOsPath().stringPath())
+fun OsPath.toNativePath(): Path = Paths.get(toNativeOsPath().path)
 
 fun OsPath.toNativeFile(): File = toNativePath().toFile()
 
@@ -50,13 +50,10 @@ fun OsPath.readText(charset: Charset = Charsets.UTF_8): String = toNativePath().
 
 // OsPath accessors
 val OsPath.leaf
-    get(): String = if (pathParts.isEmpty()) "" else pathParts.last()
-
-val OsPath.root
-    get(): String? = if (pathParts.isEmpty()) null else pathParts.first()
+    get(): String = if (pathParts.isEmpty()) root else pathParts.last()
 
 val OsPath.rootOsPath
-    get():OsPath = if (isRelative) OsPath.createOrThrow(osType) else OsPath.createOrThrow(osType, root)
+    get():OsPath = if (isRelative) OsPath.emptyPath else OsPath.createOrThrow(osType, root)
 
 val OsPath.parent
     get(): OsPath = OsPath.createOrThrow(osType, pathParts.dropLast(1))
@@ -65,4 +62,4 @@ val OsPath.nativeType
     get(): OsType = if (osType.isPosixHostedOnWindows()) OsType.WINDOWS else osType
 
 val OsPath.extension
-    get(): String? = leaf?.substringAfterLast('.', "")
+    get(): String? = leaf.substringAfterLast('.', "")
