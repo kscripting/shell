@@ -49,8 +49,7 @@ fun OsPath.readText(charset: Charset = Charsets.UTF_8): String = toNativePath().
 
 
 // OsPath accessors
-val OsPath.leaf
-    get(): String = if (pathParts.isEmpty()) root else pathParts.last()
+
 
 val OsPath.rootOsPath
     get():OsPath = if (isRelative) OsPath.emptyPath else OsPath.createOrThrow(osType, root)

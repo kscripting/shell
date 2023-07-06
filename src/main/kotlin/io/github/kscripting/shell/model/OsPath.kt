@@ -13,17 +13,12 @@ data class OsPath(val osType: OsType, val root: String, val pathParts: List<Stri
     val pathSeparator: Char get() = if (osType.isWindowsLike()) '\\' else '/'
     val path get(): String = root + pathParts.joinToString(pathSeparator.toString()) { it }
 
-    operator fun div(osPath: OsPath): OsPath {
-        return resolve(osPath)
-    }
+    val OsPath.leaf get(): String = if (pathParts.isEmpty()) root else pathParts.last()
 
-    operator fun div(path: String): OsPath {
-        return resolve(path)
-    }
+    operator fun div(osPath: OsPath): OsPath = resolve(osPath)
+    operator fun div(path: String): OsPath = resolve(path)
 
-    fun resolve(vararg pathParts: String): OsPath {
-        return resolve(createOrThrow(osType, *pathParts))
-    }
+    fun resolve(vararg pathParts: String): OsPath = resolve(createOrThrow(osType, *pathParts))
 
     fun resolve(osPath: OsPath): OsPath {
         if (osPath.isEmpty) {
@@ -48,13 +43,13 @@ data class OsPath(val osType: OsType, val root: String, val pathParts: List<Stri
             is Either.Left -> throw IllegalArgumentException(result.value)
         }
 
-        return OsPath(osType, root, normalizedPath)
+        return createPathOrEmpty(osType, root, normalizedPath)
     }
 
     //Not all conversions make sense: only Windows to CygWin and Msys and vice versa
     //TODO: conversion of paths like /usr  /opt etc. is wrong; it needs also windows root of installation cygwin/msys
     // base path: cygpath -w /
-    fun convert(targetOsType: OsType /*nativeRootPath: OsPath = emptyOsPath*/): OsPath {
+    fun convert(targetOsType: OsType /*nativeRootPath: OsPath = emptyPath*/): OsPath {
         if (osType == targetOsType) {
             return this
         }
@@ -190,10 +185,6 @@ data class OsPath(val osType: OsType, val root: String, val pathParts: List<Stri
                 is Either.Left -> return result.value.left()
             }
 
-            if (root.isEmpty() && normalizedPath.isEmpty()) {
-                return emptyPath.right()
-            }
-
             //Validate root element of path and find out if it is absolute or relative
             val forbiddenCharacter = path.substring(root.length).find { forbiddenCharacters.contains(it) }
 
@@ -201,7 +192,15 @@ data class OsPath(val osType: OsType, val root: String, val pathParts: List<Stri
                 return "Invalid character '$forbiddenCharacter' in path '$path'".left()
             }
 
-            return OsPath(osType, root, normalizedPath).right()
+            return createPathOrEmpty(osType, root, normalizedPath).right()
+        }
+
+        private fun createPathOrEmpty(osType: OsType, root: String, pathParts: List<String>): OsPath {
+            if (root.isEmpty() && pathParts.isEmpty()) {
+                return emptyPath
+            }
+
+            return OsPath(osType, root, pathParts)
         }
 
         fun normalize(root: String, pathParts: List<String>): Either<String, List<String>> {
@@ -225,8 +224,7 @@ data class OsPath(val osType: OsType, val root: String, val pathParts: List<Stri
                 if (pathParts[index] == ".") {
                     //Just skip . without adding it to newParts
                 } else if (pathParts[index] == "..") {
-
-                    if (isAbsolute && newParts.size == 1) {
+                    if (isAbsolute && newParts.size == 0) {
                         return "Path after normalization goes beyond root element: '$root'".left()
                     }
 
