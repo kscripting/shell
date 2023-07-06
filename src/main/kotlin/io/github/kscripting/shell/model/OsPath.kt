@@ -6,9 +6,10 @@ import arrow.core.right
 
 //Path representation for different OSes
 @Suppress("MemberVisibilityCanBePrivate")
-data class OsPath(val osType: OsType, val root: String, val pathType: PathType, val pathParts: List<String>) {
+data class OsPath(val osType: OsType, val root: String, val pathParts: List<String>) {
     val isRelative: Boolean get() = root.isEmpty()
     val isAbsolute: Boolean get() = !isRelative
+    val isEmpty: Boolean get() = root.isEmpty() && pathParts.isEmpty()
     val pathSeparator: Char get() = if (osType.isWindowsLike()) '\\' else '/'
 
     operator fun div(osPath: OsPath): OsPath {
@@ -28,53 +29,53 @@ data class OsPath(val osType: OsType, val root: String, val pathType: PathType, 
             "Paths from different OS's: '${this.osType.name}' path can not be resolved with '${path.osType.name}' path"
         }
 
-        require(path.pathType != PathType.ABSOLUTE) {
-            "Can not resolve absolute, relative or undefined path '${stringPath()}' using absolute path '${path.stringPath()}'"
+        require(path.isRelative) {
+            "Can not resolve absolute or relative path '${stringPath()}' using absolute path '${path.stringPath()}'"
         }
 
-        val newPath = stringPath() + pathSeparator + path.stringPath()
         val newPathParts = buildList {
             addAll(pathParts)
             addAll(path.pathParts)
         }
 
-        val normalizedPath = when (val result = normalize(newPath, newPathParts, pathType)) {
+        val normalizedPath = when (val result = normalize(this.root, newPathParts)) {
             is Either.Right -> result.value
             is Either.Left -> throw IllegalArgumentException(result.value)
         }
 
-        return OsPath(osType, "", pathType, normalizedPath)
+        return OsPath(osType, this.root, normalizedPath)
     }
 
     //Not all conversions make sense: only Windows to CygWin and Msys and vice versa
     //TODO: conversion of paths like /usr  /opt etc. is wrong; it needs also windows root of installation cygwin/msys
     // base path: cygpath -w /
-    fun convert(targetOsType: OsType): OsPath {
+    fun convert(targetOsType: OsType /*nativeRootPath: OsPath = emptyOsPath*/): OsPath {
         if (this.osType == targetOsType) {
             return this
         }
 
         if ((this.osType.isPosixLike() && targetOsType.isPosixLike()) || (this.osType.isWindowsLike() && targetOsType.isWindowsLike())) {
-            return OsPath(targetOsType, "", pathType, pathParts)
+            return OsPath(targetOsType, this.root, pathParts)
         }
 
-        val toPosix = osType.isWindowsLike() && targetOsType.isPosixHostedOnWindows()
-        val fromPosix = osType.isPosixHostedOnWindows() && targetOsType.isWindowsLike()
+        val toHosted = osType.isWindowsLike() && targetOsType.isPosixHostedOnWindows()
+        val toNative = osType.isPosixHostedOnWindows() && targetOsType.isWindowsLike()
 
-        require(toPosix || fromPosix) {
+        require(toHosted || toNative) {
             "Only conversion between Windows and Posix hosted on Windows paths are supported"
         }
 
         val newParts = mutableListOf<String>()
+        var newRoot = ""
 
         when {
-            toPosix -> {
+            toHosted -> {
                 val drive: String
 
-                if (pathType == PathType.ABSOLUTE) {
-                    drive = pathParts[0][0].lowercase()
+                if (isAbsolute) {
+                    drive = root.dropLast(2).lowercase()
 
-                    newParts.add("/")
+                    newRoot = "/"
 
                     if (targetOsType == OsType.CYGWIN) {
                         newParts.add("cygdrive")
@@ -82,40 +83,33 @@ data class OsPath(val osType: OsType, val root: String, val pathType: PathType, 
                     } else {
                         newParts.add(drive)
                     }
-
-                    newParts.addAll(pathParts.subList(1, pathParts.size))
-                } else {
-                    newParts.addAll(pathParts)
                 }
+
+                newParts.addAll(pathParts)
             }
 
-            fromPosix -> {
-                if (pathType == PathType.ABSOLUTE) {
+            toNative -> {
+                if (isAbsolute) {
                     if (osType == OsType.CYGWIN) {
-                        newParts.add(pathParts[2] + ":")
-                        newParts.addAll(pathParts.subList(3, pathParts.size))
-                    } else {
-                        newParts.add(pathParts[1] + ":")
+                        newRoot = pathParts[1] + ":\\"
                         newParts.addAll(pathParts.subList(2, pathParts.size))
+                    } else {
+                        newRoot = pathParts[0] + ":\\"
+                        newParts.addAll(pathParts.subList(1, pathParts.size))
                     }
                 } else {
                     newParts.addAll(pathParts)
                 }
             }
 
-            else -> throw IllegalArgumentException("Invalid conversion: ${pathType.name} to ${targetOsType.name}")
+            else -> throw IllegalArgumentException("Invalid conversion: $this to ${targetOsType.name}")
         }
 
-        return OsPath(targetOsType, "", pathType, newParts)
+        return OsPath(targetOsType, newRoot, newParts)
     }
 
-    fun stringPath(): String {
-        if (osType.isPosixLike() && pathParts.isNotEmpty() && pathParts[0] == "/") {
-            return "/" + pathParts.subList(1, pathParts.size).joinToString(pathSeparator.toString()) { it }
-        }
+    fun stringPath(): String = root + pathParts.joinToString(pathSeparator.toString()) { it }
 
-        return pathParts.joinToString(pathSeparator.toString()) { it }
-    }
 
     override fun toString(): String = stringPath()
 
@@ -137,7 +131,8 @@ data class OsPath(val osType: OsType, val root: String, val pathType: PathType, 
 
         private const val alphaChars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
 
-        private val windowsDriveRegex = "^([a-zA-Z]:(?=\\\\)|\\\\\\\\(?:[^\\*:<>?\\\\\\/|]+\\\\[^\\*:<>?\\\\\\/|]+|\\?\\\\(?:[a-zA-Z]:(?=\\\\)|(?:UNC\\\\)?[^\\*:<>?\\\\\\/|]+\\\\[^\\*:<>?\\\\\\/|]+)))".toRegex()
+        private val windowsDriveRegex =
+            "^([a-zA-Z]:(?=[\\\\/])|\\\\\\\\(?:[^*:<>?\\\\/|]+\\\\[^*:<>?\\\\/|]+|\\?\\\\(?:[a-zA-Z]:(?=\\\\)|(?:UNC\\\\)?[^*:<>?\\\\/|]+\\\\[^*:<>?\\\\/|]+)))".toRegex()
 
 
         fun createOrThrow(vararg pathParts: String): OsPath = createOrThrow(OsType.native, pathParts.toList())
@@ -174,8 +169,10 @@ data class OsPath(val osType: OsType, val root: String, val pathType: PathType, 
                 osType.isPosixLike() && path.startsWith("/") -> "/"
                 osType.isWindowsLike() -> {
                     val match = windowsDriveRegex.find(path)
-                    match?.groupValues?.get(1) ?: ""
+                    val matchedRoot = match?.groupValues?.get(1)
+                    if (matchedRoot != null) matchedRoot + "\\" else ""
                 }
+
                 else -> ""
             }
 
@@ -183,77 +180,25 @@ data class OsPath(val osType: OsType, val root: String, val pathType: PathType, 
             // https://regex101.com/r/aU4yZ7/1
             println("root: '$root'")
 
-            //.drop(root.length)
-            val pathPartsResolved = path.split('/', '\\').toMutableList()
+            //Remove empty path parts - there were duplicated or trailing slashes / backslashes in initial path
+            val pathPartsResolved = path.drop(root.length).split('/', '\\').filter { it.isNotBlank() }
 
             //Validate root element of path and find out if it is absolute or relative
-            val rootElementSizeInInputPath: Int
-            val pathType: PathType
-
-            var isUndefined = false
-
-            when {
-                pathPartsResolved.isEmpty() -> {
-                    pathType = PathType.RELATIVE
-                    isUndefined = true
-                    rootElementSizeInInputPath = 0
-                }
-
-                pathPartsResolved[0] == "~" -> {
-                    pathType = PathType.ABSOLUTE
-                    rootElementSizeInInputPath = 1
-                }
-
-                pathPartsResolved[0] == ".." || pathPartsResolved[0] == "." -> {
-                    pathType = PathType.RELATIVE
-                    rootElementSizeInInputPath = pathPartsResolved[0].length
-                }
-
-                osType.isPosixLike() && path.startsWith("/") -> {
-                    //After split first element is empty for absolute paths on Linux; assigning correct value below
-                    pathPartsResolved.add(0, "/")
-                    pathType = PathType.ABSOLUTE
-                    rootElementSizeInInputPath = 1
-                }
-
-                osType.isWindowsLike() && pathPartsResolved[0].length == 2 && pathPartsResolved[0][1] == ':' && alphaChars.contains(
-                    pathPartsResolved[0][0]
-                ) -> {
-                    pathType = PathType.ABSOLUTE
-                    rootElementSizeInInputPath = 2
-                }
-
-                else -> {
-                    //This is undefined path
-                    pathType = PathType.RELATIVE
-                    isUndefined = true
-                    rootElementSizeInInputPath = 0
-                }
-            }
-
-            val forbiddenCharacter =
-                path.substring(rootElementSizeInInputPath).find { forbiddenCharacters.contains(it) }
+            val forbiddenCharacter = path.substring(root.length).find { forbiddenCharacters.contains(it) }
 
             if (forbiddenCharacter != null) {
                 return "Invalid character '$forbiddenCharacter' in path '$path'".left()
             }
 
-            if (isUndefined) {
-                pathPartsResolved.add(0, ".")
-            }
-
-            //Remove empty path parts - there were duplicated or trailing slashes / backslashes in initial path
-            pathPartsResolved.removeAll { it.isEmpty() }
-
-            val normalizedPath = when (val result = normalize(path, pathPartsResolved, pathType)) {
+            val normalizedPath = when (val result = normalize(root, pathPartsResolved)) {
                 is Either.Right -> result.value
                 is Either.Left -> return result.value.left()
             }
 
-            return OsPath(osType, root, pathType, normalizedPath).right()
+            return OsPath(osType, root, normalizedPath).right()
         }
 
-        fun normalize(path: String, pathParts: List<String>, pathType: PathType): Either<String, List<String>> {
+        fun normalize(root: String, pathParts: List<String>): Either<String, List<String>> {
             //Relative:
             // ./../ --> ../
             // ./a/../ --> ./
@@ -265,10 +210,10 @@ data class OsPath(val osType: OsType, val root: String, val pathType: PathType, 
             // /../ --> invalid (above root)
             // /a/../ --> /
 
-            val newParts = mutableListOf<String>()
-            var index = 1
+            val pathType: PathType = if (root.isNotEmpty()) PathType.ABSOLUTE else PathType.RELATIVE
 
-            newParts.add(pathParts[0])
+            val newParts = mutableListOf<String>()
+            var index = 0
 
             while (index < pathParts.size) {
                 if (pathParts[index] == ".") {
@@ -276,7 +221,7 @@ data class OsPath(val osType: OsType, val root: String, val pathType: PathType, 
                 } else if (pathParts[index] == "..") {
 
                     if (pathType == PathType.ABSOLUTE && newParts.size == 1) {
-                        return "Path after normalization goes beyond root element: '$path'".left()
+                        return "Path after normalization goes beyond root element: '$root'".left()
                     }
 
                     if (newParts.size > 0) {
