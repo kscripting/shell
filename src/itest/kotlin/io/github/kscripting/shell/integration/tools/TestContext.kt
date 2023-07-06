@@ -15,7 +15,7 @@ object TestContext {
     val pathEnvVariableName = if (osType.isWindowsLike()) "Path" else "PATH"
     val pathEnvVariableValue: String = System.getenv()[pathEnvVariableName]!!
     val pathEnvVariableSeparator: String = if (osType.isWindowsLike() || osType.isPosixHostedOnWindows()) ";" else ":"
-    val pathEnvVariableCalculatedPath: String = "${execPath.convert(osType)}$pathEnvVariableSeparator$pathEnvVariableValue"
+    val pathEnvVariableCalculatedPath: String = "${execPath.convert(osType).path}$pathEnvVariableSeparator$pathEnvVariableValue"
 
     val nl: String = when {
         osType.isPosixHostedOnWindows() -> "\n"

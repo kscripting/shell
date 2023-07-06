@@ -14,11 +14,11 @@ data class OsPath(val osType: OsType, val root: String, val pathParts: List<Stri
     val path get(): String = root + pathParts.joinToString(pathSeparator.toString()) { it }
 
     operator fun div(osPath: OsPath): OsPath {
-        return this.resolve(osPath)
+        return resolve(osPath)
     }
 
     operator fun div(path: String): OsPath {
-        return this.resolve(path)
+        return resolve(path)
     }
 
     fun resolve(vararg pathParts: String): OsPath {
@@ -31,7 +31,7 @@ data class OsPath(val osType: OsType, val root: String, val pathParts: List<Stri
         }
 
         require(osType == osPath.osType || osType == OsType.ANY) {
-            "Paths from different OS's: '${this.osType.name}' path can not be resolved with '${osPath.osType.name}' path"
+            "Paths from different OS's: '${osType.name}' path can not be resolved with '${osPath.osType.name}' path"
         }
 
         require(osPath.isRelative) {
@@ -43,24 +43,24 @@ data class OsPath(val osType: OsType, val root: String, val pathParts: List<Stri
             addAll(osPath.pathParts)
         }
 
-        val normalizedPath = when (val result = normalize(this.root, newPathParts)) {
+        val normalizedPath = when (val result = normalize(root, newPathParts)) {
             is Either.Right -> result.value
             is Either.Left -> throw IllegalArgumentException(result.value)
         }
 
-        return OsPath(osType, this.root, normalizedPath)
+        return OsPath(osType, root, normalizedPath)
     }
 
     //Not all conversions make sense: only Windows to CygWin and Msys and vice versa
     //TODO: conversion of paths like /usr  /opt etc. is wrong; it needs also windows root of installation cygwin/msys
     // base path: cygpath -w /
     fun convert(targetOsType: OsType /*nativeRootPath: OsPath = emptyOsPath*/): OsPath {
-        if (this.osType == targetOsType) {
+        if (osType == targetOsType) {
             return this
         }
 
-        if ((this.osType.isPosixLike() && targetOsType.isPosixLike()) || (this.osType.isWindowsLike() && targetOsType.isWindowsLike())) {
-            return OsPath(targetOsType, this.root, pathParts)
+        if ((osType.isPosixLike() && targetOsType.isPosixLike()) || (osType.isWindowsLike() && targetOsType.isWindowsLike())) {
+            return OsPath(targetOsType, root, pathParts)
         }
 
         val toHosted = osType.isWindowsLike() && targetOsType.isPosixHostedOnWindows()
@@ -75,10 +75,9 @@ data class OsPath(val osType: OsType, val root: String, val pathParts: List<Stri
 
         when {
             toHosted -> {
-                val drive: String
-
                 if (isAbsolute) {
-                    drive = root.dropLast(2).lowercase()
+                    //root is like 'C:\'
+                    val drive = root.dropLast(2).lowercase()
 
                     newRoot = "/"
 
