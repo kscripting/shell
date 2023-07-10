@@ -8,7 +8,7 @@ import io.github.kscripting.shell.util.Sanitizer
 object TestContext {
     val osType: OsType = OsType.find(System.getProperty("osType")) ?: OsType.native
 
-    val projectPath: OsPath = OsPath.createOrThrow(OsType.native, System.getProperty("projectPath")).convert(osType)
+    val projectPath: OsPath = OsPath.of(OsType.native, System.getProperty("projectPath")).convert(osType)
     val execPath: OsPath = projectPath.resolve("build/shell_test/bin")
     val testPath: OsPath = projectPath.resolve("build/shell_test/tmp")
 
