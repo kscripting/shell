@@ -1,7 +1,7 @@
 package io.github.kscripting.shell
 
-import io.github.kscripting.shell.model.OsPath
-import io.github.kscripting.shell.model.OsType
+import io.github.kscripting.os.model.OsPath
+import io.github.kscripting.os.model.OsType
 import io.github.kscripting.shell.model.ProcessResult
 import io.github.kscripting.shell.model.ShellType
 import io.github.kscripting.shell.process.EnvAdjuster

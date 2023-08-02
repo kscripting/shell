@@ -1,10 +1,10 @@
 package io.github.kscripting.shell.integration
 
+import io.github.kscripting.os.model.readText
 import io.github.kscripting.shell.integration.tools.ShellTestBase
 import io.github.kscripting.shell.integration.tools.TestContext
 import io.github.kscripting.shell.integration.tools.TestContext.execPath
 import io.github.kscripting.shell.integration.tools.TestContext.testPath
-import io.github.kscripting.shell.model.readText
 import io.github.kscripting.shell.util.Sanitizer
 import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test

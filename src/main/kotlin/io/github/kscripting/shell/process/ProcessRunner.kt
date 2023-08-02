@@ -1,8 +1,8 @@
 package io.github.kscripting.shell.process
 
 import io.github.kscripting.shell.model.CommandTimeoutException
-import io.github.kscripting.shell.model.OsPath
-import io.github.kscripting.shell.model.toNativeFile
+import io.github.kscripting.os.model.OsPath
+import io.github.kscripting.os.model.toNativeFile
 import io.github.kscripting.shell.util.Sanitizer
 import io.github.kscripting.shell.util.Sanitizer.Companion.EMPTY_SANITIZER
 import java.io.InputStream
