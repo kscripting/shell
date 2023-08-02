@@ -3,7 +3,6 @@ package io.github.kscripting.os
 import io.github.kscripting.os.model.OsPath
 import io.github.kscripting.os.model.OsType
 import net.igsoft.typeutils.marker.AutoTypedMarker
-import net.igsoft.typeutils.marker.TypedMarker
 
 interface Os {
     val type: OsType

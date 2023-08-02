@@ -119,18 +119,15 @@ class OsPathTest {
         ).isEqualTo("/.kscript")
 
         assertThat(
-            OsPath.of(OsType.LINUX, "/home/admin/")
-                .resolve(OsPath.of(OsType.LINUX, "./.kscript/")).path
+            OsPath.of(OsType.LINUX, "/home/admin/").resolve(OsPath.of(OsType.LINUX, "./.kscript/")).path
         ).isEqualTo("/home/admin/.kscript")
 
         assertThat(
-            OsPath.of(OsType.LINUX, "./home/admin/")
-                .resolve(OsPath.of(OsType.LINUX, "./.kscript/")).path
+            OsPath.of(OsType.LINUX, "./home/admin/").resolve(OsPath.of(OsType.LINUX, "./.kscript/")).path
         ).isEqualTo("home/admin/.kscript")
 
         assertThat(
-            OsPath.of(OsType.LINUX, "../home/admin/")
-                .resolve(OsPath.of(OsType.LINUX, "./.kscript/")).path
+            OsPath.of(OsType.LINUX, "../home/admin/").resolve(OsPath.of(OsType.LINUX, "./.kscript/")).path
         ).isEqualTo("../home/admin/.kscript")
 
         assertThat(

@@ -9,8 +9,9 @@ import arrow.core.right
 data class OsPath(val osType: OsType, val root: String, val pathParts: List<String>) {
     val isRelative: Boolean get() = root.isEmpty()
     val isAbsolute: Boolean get() = !isRelative
-    val pathSeparator: Char get() = if (osType.isWindowsLike()) '\\' else '/'
-    val path get(): String = root + pathParts.joinToString(pathSeparator.toString()) { it }
+
+    val pathSeparator: String get() = if (osType.isWindowsLike()) "\\" else "/"
+    val path get(): String = root + pathParts.joinToString(pathSeparator) { it }
 
     val OsPath.leaf get(): String = if (pathParts.isEmpty()) root else pathParts.last()
 
