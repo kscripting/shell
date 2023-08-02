@@ -17,7 +17,7 @@ data class OsPath(val osType: OsType, val root: String, val pathParts: List<Stri
     operator fun div(osPath: OsPath): OsPath = resolve(osPath)
     operator fun div(path: String): OsPath = resolve(path)
 
-    fun resolve(vararg pathParts: String): OsPath = resolve(createOrThrow(osType, *pathParts))
+    fun resolve(vararg pathParts: String): OsPath = resolve(of(osType, *pathParts))
 
     fun resolve(osPath: OsPath): OsPath {
         require(osType == osPath.osType) {
@@ -126,22 +126,22 @@ data class OsPath(val osType: OsType, val root: String, val pathParts: List<Stri
             "^([a-zA-Z]:(?=[\\\\/])|\\\\\\\\(?:[^*:<>?\\\\/|]+\\\\[^*:<>?\\\\/|]+|\\?\\\\(?:[a-zA-Z]:(?=\\\\)|(?:UNC\\\\)?[^*:<>?\\\\/|]+\\\\[^*:<>?\\\\/|]+)))".toRegex()
 
 
-        fun createOrThrow(vararg pathParts: String): OsPath = createOrThrow(OsType.native, pathParts.toList())
+        fun of(vararg pathParts: String): OsPath = of(OsType.native, pathParts.toList())
 
-        fun createOrThrow(osType: OsType, vararg pathParts: String): OsPath = createOrThrow(osType, pathParts.toList())
+        fun of(osType: OsType, vararg pathParts: String): OsPath = of(osType, pathParts.toList())
 
-        fun createOrThrow(osType: OsType, pathParts: List<String>): OsPath {
+        fun of(osType: OsType, pathParts: List<String>): OsPath {
             return when (val result = internalCreate(osType, pathParts)) {
                 is Either.Right -> result.value
                 is Either.Left -> throw IllegalArgumentException(result.value)
             }
         }
 
-        fun create(vararg pathParts: String): OsPath? = create(OsType.native, pathParts.toList())
+        fun ofOrNull(vararg pathParts: String): OsPath? = ofOrNull(OsType.native, pathParts.toList())
 
-        fun create(osType: OsType, vararg pathParts: String): OsPath? = create(osType, pathParts.toList())
+        fun ofOrNull(osType: OsType, vararg pathParts: String): OsPath? = ofOrNull(osType, pathParts.toList())
 
-        fun create(osType: OsType, pathParts: List<String>): OsPath? {
+        fun ofOrNull(osType: OsType, pathParts: List<String>): OsPath? {
             return when (val result = internalCreate(osType, pathParts)) {
                 is Either.Right -> result.value
                 is Either.Left -> null
