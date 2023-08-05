@@ -7,7 +7,5 @@ import io.github.kscripting.os.model.OsType
 class LinuxOs(userHome: String) : Os {
     override val type: OsType = OsType.LINUX
     override val pathSeparator get() = "/"
-    override val userHome: OsPath = path(userHome)
-
-    override fun path(vararg pathParts: String): OsPath = TODO()
+    override val userHome: OsPath = OsPath.of(OsType.LINUX, userHome)
 }

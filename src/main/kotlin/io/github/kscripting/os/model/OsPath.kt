@@ -42,9 +42,18 @@ data class OsPath(val osType: OsType, val root: String, val pathParts: List<Stri
         return OsPath(osType, root, normalizedPath)
     }
 
+//    fun toNative(): OsPath {
+//
+//    }
+//
+//    fun toHosted(): OsPath {
+//
+//    }
+
     //Not all conversions make sense: only Windows to CygWin and Msys and vice versa
     //TODO: conversion of paths like /usr  /opt etc. is wrong; it needs also windows root of installation cygwin/msys
     // base path: cygpath -w /
+    //TODO: This function has to broad scope: use instead toNative and toHosted
     fun convert(targetOsType: OsType /*nativeRootPath: OsPath = emptyPath*/): OsPath {
         if (osType == targetOsType) {
             return this

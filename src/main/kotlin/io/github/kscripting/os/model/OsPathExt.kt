@@ -10,17 +10,15 @@ import kotlin.io.path.*
 
 
 // Conversion to OsPath
-
 fun File.toOsPath(): OsPath = OsPath.of(OsType.native, absolutePath)
 
 fun Path.toOsPath(): OsPath = OsPath.of(OsType.native, absolutePathString())
 
 fun URI.toOsPath(): OsPath =
-    if (this.scheme == "file") File(this).toOsPath() else throw IllegalArgumentException("Invalid conversion from URL to OsPath")
+    if (this.scheme == "file") File(this).toOsPath() else error("Invalid conversion from URL to OsPath")
 
 
 // Conversion from OsPath
-
 fun OsPath.toNativePath(): Path = Paths.get(toNativeOsPath().path)
 
 fun OsPath.toNativeOsPath() = if (osType.isPosixHostedOnWindows()) convert(OsType.WINDOWS) else this
@@ -29,7 +27,6 @@ fun OsPath.toNativeFile(): File = toNativePath().toFile()
 
 
 // OsPath operations
-
 fun OsPath.exists() = toNativePath().exists()
 
 fun OsPath.createDirectories(): OsPath = OsPath.of(nativeType, toNativePath().createDirectories().pathString)
@@ -44,7 +41,6 @@ fun OsPath.readText(charset: Charset = Charsets.UTF_8): String = toNativePath().
 
 
 // OsPath accessors
-
 val OsPath.leaf
     get() = if (pathParts.isEmpty()) "" else pathParts.last()
 
