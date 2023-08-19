@@ -2,6 +2,11 @@ package io.github.kscripting.os.model
 
 import assertk.assertThat
 import assertk.assertions.*
+import io.github.kscripting.os.instance.CygwinOs
+import io.github.kscripting.os.instance.LinuxOs
+import io.github.kscripting.os.instance.MsysOs
+import io.github.kscripting.os.instance.WindowsOs
+import net.igsoft.typeutils.globalcontext.GlobalContext
 import org.junit.jupiter.api.Test
 
 class OsPathTest {
@@ -104,9 +109,9 @@ class OsPathTest {
 
     @Test
     fun `Test Linux stringPath`() {
-        assertThat(
-            OsPath.of(OsType.LINUX, "/home/admin/.kscript").path
-        ).isEqualTo("/home/admin/.kscript")
+        GlobalContext.registerOrReplace(OsType.LINUX, LinuxOs("userhome"))
+
+        assertThat(OsPath.of(OsType.LINUX, "/home/admin/.kscript").path).isEqualTo("/home/admin/.kscript")
         assertThat(OsPath.of(OsType.LINUX, "/a/b/c/../d/script").path).isEqualTo("/a/b/d/script")
         assertThat(OsPath.of(OsType.LINUX, "./././../../script").path).isEqualTo("../../script")
         assertThat(OsPath.of(OsType.LINUX, "script/file.txt").path).isEqualTo("script/file.txt")
@@ -270,6 +275,9 @@ class OsPathTest {
 
     @Test
     fun `Test Windows to Cygwin`() {
+        GlobalContext.registerOrReplace(OsType.CYGWIN, CygwinOs("userhome", "nativeFileSystemRoot"))
+        GlobalContext.registerOrReplace(OsType.WINDOWS, WindowsOs("userhome"))
+
         assertThat(
             OsPath.of(OsType.WINDOWS, "C:\\home\\admin\\.kscript").convert(OsType.CYGWIN).path
         ).isEqualTo("/cygdrive/c/home/admin/.kscript")
@@ -303,6 +311,9 @@ class OsPathTest {
 
     @Test
     fun `Test MSys to Windows`() {
+        GlobalContext.registerOrReplace(OsType.MSYS, MsysOs("userhome", "nativeFileSystemRoot"))
+        GlobalContext.registerOrReplace(OsType.WINDOWS, WindowsOs("userhome"))
+
         assertThat(
             OsPath.of(OsType.MSYS, "/c/home/admin/.kscript").convert(OsType.WINDOWS).path
         ).isEqualTo("c:\\home\\admin\\.kscript")

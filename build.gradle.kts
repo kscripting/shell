@@ -35,6 +35,11 @@ configurations {
     get("itestImplementation").apply { extendsFrom(get("testImplementation")) }
 }
 
+configurations.all {
+    resolutionStrategy.cacheDynamicVersionsFor(0, "seconds")
+    resolutionStrategy.cacheChangingModulesFor(0, "seconds")
+}
+
 tasks.create<Test>("itest") {
     val itags = System.getProperty("includeTags") ?: ""
     val etags = System.getProperty("excludeTags") ?: ""

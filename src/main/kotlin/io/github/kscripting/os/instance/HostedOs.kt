@@ -5,7 +5,7 @@ import io.github.kscripting.os.model.OsPath
 import io.github.kscripting.os.model.OsType
 
 interface HostedOs : Os {
-    val nativeType: OsType
+    val nativeType: OsType<out Os>
     val nativeFileSystemRoot: OsPath
-    override val pathSeparator get(): String = "/"
+    override val pathSeparator: String get() = "/"
 }

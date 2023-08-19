@@ -6,12 +6,11 @@ import arrow.core.right
 
 //Path representation for different OSes
 @Suppress("MemberVisibilityCanBePrivate")
-data class OsPath(val osType: OsType, val root: String, val pathParts: List<String>) {
+data class OsPath(val osType: OsType<*>, val root: String, val pathParts: List<String>) {
     val isRelative: Boolean get() = root.isEmpty()
     val isAbsolute: Boolean get() = !isRelative
 
-    val pathSeparator: String get() = if (osType.isWindowsLike()) "\\" else "/"
-    val path get(): String = root + pathParts.joinToString(pathSeparator) { it }
+    val path get(): String = root + pathParts.joinToString(osType.value.pathSeparator) { it }
 
     val OsPath.leaf get(): String = if (pathParts.isEmpty()) root else pathParts.last()
 
@@ -22,7 +21,7 @@ data class OsPath(val osType: OsType, val root: String, val pathParts: List<Stri
 
     fun resolve(osPath: OsPath): OsPath {
         require(osType == osPath.osType) {
-            "Paths from different OS's: '${osType.name}' path can not be resolved with '${osPath.osType.name}' path"
+            "Paths from different OS's: '${osType}' path can not be resolved with '${osPath.osType}' path"
         }
 
         require(osPath.isRelative) {
@@ -54,7 +53,7 @@ data class OsPath(val osType: OsType, val root: String, val pathParts: List<Stri
     //TODO: conversion of paths like /usr  /opt etc. is wrong; it needs also windows root of installation cygwin/msys
     // base path: cygpath -w /
     //TODO: This function has to broad scope: use instead toNative and toHosted
-    fun convert(targetOsType: OsType /*nativeRootPath: OsPath = emptyPath*/): OsPath {
+    fun convert(targetOsType: OsType<*> /*nativeRootPath: OsPath = emptyPath*/): OsPath {
         if (osType == targetOsType) {
             return this
         }
@@ -106,13 +105,13 @@ data class OsPath(val osType: OsType, val root: String, val pathParts: List<Stri
                 }
             }
 
-            else -> throw IllegalArgumentException("Invalid conversion: $this to ${targetOsType.name}")
+            else -> throw IllegalArgumentException("Invalid conversion: $this to $targetOsType")
         }
 
         return OsPath(targetOsType, newRoot, newParts)
     }
 
-    override fun toString(): String = "$path [${osType.name}]"
+    override fun toString(): String = "$path [$osType]"
 
     companion object {
         //https://stackoverflow.com/questions/1976007/what-characters-are-forbidden-in-windows-and-linux-directory-names
@@ -138,9 +137,9 @@ data class OsPath(val osType: OsType, val root: String, val pathParts: List<Stri
 
         fun of(vararg pathParts: String): OsPath = of(OsType.native, pathParts.toList())
 
-        fun of(osType: OsType, vararg pathParts: String): OsPath = of(osType, pathParts.toList())
+        fun of(osType: OsType<*>, vararg pathParts: String): OsPath = of(osType, pathParts.toList())
 
-        fun of(osType: OsType, pathParts: List<String>): OsPath {
+        fun of(osType: OsType<*>, pathParts: List<String>): OsPath {
             return when (val result = internalCreate(osType, pathParts)) {
                 is Either.Right -> result.value
                 is Either.Left -> throw IllegalArgumentException(result.value)
@@ -149,9 +148,9 @@ data class OsPath(val osType: OsType, val root: String, val pathParts: List<Stri
 
         fun ofOrNull(vararg pathParts: String): OsPath? = ofOrNull(OsType.native, pathParts.toList())
 
-        fun ofOrNull(osType: OsType, vararg pathParts: String): OsPath? = ofOrNull(osType, pathParts.toList())
+        fun ofOrNull(osType: OsType<*>, vararg pathParts: String): OsPath? = ofOrNull(osType, pathParts.toList())
 
-        fun ofOrNull(osType: OsType, pathParts: List<String>): OsPath? {
+        fun ofOrNull(osType: OsType<*>, pathParts: List<String>): OsPath? {
             return when (val result = internalCreate(osType, pathParts)) {
                 is Either.Right -> result.value
                 is Either.Left -> null
@@ -161,7 +160,7 @@ data class OsPath(val osType: OsType, val root: String, val pathParts: List<Stri
         //Relaxed validation:
         //1. It doesn't matter if there is '/' or '\' used as path separator - both are treated the same
         //2. Duplicated or trailing slashes '/' and backslashes '\' are just ignored
-        private fun internalCreate(osType: OsType, pathParts: List<String>): Either<String, OsPath> {
+        private fun internalCreate(osType: OsType<*>, pathParts: List<String>): Either<String, OsPath> {
             val path = pathParts.joinToString("/")
 
             //Detect root

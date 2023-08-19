@@ -6,7 +6,7 @@ import io.github.kscripting.os.model.OsType
 
 class MacOs(userHome: String) : Os {
     override val osTypePrefix: String = "darwin"
-    override val type: OsType = OsType.LINUX
-    override val pathSeparator get() = "/"
-    override val userHome: OsPath = OsPath.of(OsType.LINUX, userHome)
+    override val type: OsType<MacOs> = OsType.MACOS
+    override val pathSeparator: String get() = "/"
+    override val userHome: OsPath = OsPath.of(OsType.MACOS, userHome)
 }

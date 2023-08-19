@@ -1,5 +1,6 @@
 package io.github.kscripting.shell
 
+import io.github.kscripting.os.Os
 import io.github.kscripting.os.model.OsPath
 import io.github.kscripting.os.model.OsType
 import io.github.kscripting.shell.model.ProcessResult
@@ -20,7 +21,7 @@ import java.util.regex.Pattern
 object ShellExecutor {
     private val SPLIT_PATTERN = Pattern.compile("([^\"]\\S*|\".+?\")\\s*")
     private val UTF_8 = StandardCharsets.UTF_8.name()
-    private val DEFAULT_SHELL_MAPPER: Map<OsType, ShellType> = mapOf(
+    private val DEFAULT_SHELL_MAPPER: Map<OsType<out Os>, ShellType> = mapOf(
         OsType.WINDOWS to ShellType.CMD,
         OsType.LINUX to ShellType.BASH,
         OsType.FREEBSD to ShellType.BASH,
@@ -31,7 +32,7 @@ object ShellExecutor {
 
     fun evalAndGobble(
         command: String,
-        osType: OsType = OsType.native,
+        osType: OsType<out Os> = OsType.native,
         workingDirectory: OsPath? = null,
         waitTimeMinutes: Int = 10,
         inheritInput: Boolean = false,
@@ -40,7 +41,7 @@ object ShellExecutor {
         outPrinter: List<PrintStream> = emptyList(),
         errPrinter: List<PrintStream> = emptyList(),
         inputStream: InputStream? = null,
-        shellMapper: Map<OsType, ShellType> = DEFAULT_SHELL_MAPPER,
+        shellMapper: Map<OsType<out Os>, ShellType> = DEFAULT_SHELL_MAPPER,
         envAdjuster: EnvAdjuster = {}
     ): ProcessResult {
         val outStream = ByteArrayOutputStream(1024)
@@ -72,7 +73,7 @@ object ShellExecutor {
 
     fun eval(
         command: String,
-        osType: OsType = OsType.native,
+        osType: OsType<out Os> = OsType.native,
         workingDirectory: OsPath? = null,
         waitTimeMinutes: Int = 10,
         inheritInput: Boolean = false,
@@ -81,7 +82,7 @@ object ShellExecutor {
         outPrinter: List<PrintStream> = DEFAULT_OUT_PRINTERS,
         errPrinter: List<PrintStream> = DEFAULT_ERR_PRINTERS,
         inputStream: InputStream? = null,
-        shellMapper: Map<OsType, ShellType> = DEFAULT_SHELL_MAPPER,
+        shellMapper: Map<OsType<out Os>, ShellType> = DEFAULT_SHELL_MAPPER,
         envAdjuster: EnvAdjuster = {}
     ): Int {
         val sanitizedCommand = inputSanitizer.sanitize(command)

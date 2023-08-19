@@ -12,7 +12,7 @@ interface Os {
     // "darwin19", "linux-musl" (for Docker Alpine), "linux-gnu" and maybe even other osTypes. But it seems that
     // startsWith() covers all cases.
     val osTypePrefix: String
-    val type: OsType
+    val type: OsType<out Os>
     val userHome: OsPath
     val pathSeparator: String
 }
