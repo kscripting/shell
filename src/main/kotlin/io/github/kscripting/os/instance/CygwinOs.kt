@@ -4,6 +4,7 @@ import io.github.kscripting.os.model.OsPath
 import io.github.kscripting.os.model.OsType
 
 class CygwinOs(userHome: String, nativeFileSystemRoot: String) : HostedOs {
+    override val osTypePrefix: String = "cygwin"
     override val type: OsType = OsType.CYGWIN
     override val userHome: OsPath = TODO()
     override val nativeType: OsType = OsType.WINDOWS

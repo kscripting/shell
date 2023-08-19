@@ -28,6 +28,9 @@ class OsTypeNew<T : Os> private constructor(private val marker: TypedMarker<T>) 
 
         val native: OsTypeNew<out Os> = guessNativeType()
 
+        fun findByOsTypeString(osTypeString: String): OsTypeNew<out Os>? =
+            find { osTypeString.startsWith(it.value.osTypePrefix, true) }
+
         private fun guessNativeType(): OsTypeNew<out Os> {
             when {
                 SystemUtils.IS_OS_LINUX -> return LINUX
