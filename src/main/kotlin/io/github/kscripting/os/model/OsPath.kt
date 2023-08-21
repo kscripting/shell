@@ -3,6 +3,7 @@ package io.github.kscripting.os.model
 import arrow.core.Either
 import arrow.core.left
 import arrow.core.right
+import io.github.kscripting.os.instance.HostedOs
 
 //Path representation for different OSes
 @Suppress("MemberVisibilityCanBePrivate")
@@ -41,74 +42,82 @@ data class OsPath(val osType: OsType<*>, val root: String, val pathParts: List<S
         return OsPath(osType, root, normalizedPath)
     }
 
-//    fun toNative(): OsPath {
-//
-//    }
-//
-//    fun toHosted(): OsPath {
-//
-//    }
-
-    //Not all conversions make sense: only Windows to CygWin and Msys and vice versa
-    //TODO: conversion of paths like /usr  /opt etc. is wrong; it needs also windows root of installation cygwin/msys
-    // base path: cygpath -w /
-    //TODO: This function has to broad scope: use instead toNative and toHosted
-    fun convert(targetOsType: OsType<*> /*nativeRootPath: OsPath = emptyPath*/): OsPath {
-        if (osType == targetOsType) {
-            return this
+    fun toNative(): OsPath {
+        check(osType.isPosixHostedOnWindows()) {
+            "You can convert only paths on hosted OS-es"
         }
 
-        if ((osType.isPosixLike() && targetOsType.isPosixLike()) || (osType.isWindowsLike() && targetOsType.isWindowsLike())) {
-            return OsPath(targetOsType, root, pathParts)
+        val hostedOs = osType.value as HostedOs
+
+        val newParts = mutableListOf<String>()
+        var newRoot = ""
+
+        if (isAbsolute) {
+            when (osType) {
+                OsType.CYGWIN -> {
+                    if (pathParts[0].equals("cygdrive", true)) { //Paths referring /cygdrive
+                        newRoot = pathParts[1] + ":\\"
+                        newParts.addAll(pathParts.subList(2, pathParts.size))
+                    } else if (root == "~") { //Paths starting with ~
+                        newRoot = hostedOs.nativeFileSystemRoot.root
+                        newParts.addAll(hostedOs.nativeFileSystemRoot.pathParts)
+                        newParts.addAll(hostedOs.userHome.pathParts)
+                        newParts.addAll(pathParts)
+                    } else { //Any other path like: /usr/bin
+                        newRoot = hostedOs.nativeFileSystemRoot.root
+                        newParts.addAll(hostedOs.nativeFileSystemRoot.pathParts)
+                        newParts.addAll(pathParts)
+                    }
+                }
+
+                OsType.MSYS -> {
+                    if (pathParts[0].length == 1 && (pathParts[0][0].code in 65..90 || pathParts[0][0].code in 97..122)) { //Paths referring with drive letter at the beginning
+                        newRoot = pathParts[0] + ":\\"
+                        newParts.addAll(pathParts.subList(1, pathParts.size))
+                    } else if (root == "~") { //Paths starting with ~
+                        newRoot = hostedOs.nativeFileSystemRoot.root
+                        newParts.addAll(hostedOs.nativeFileSystemRoot.pathParts)
+                        newParts.addAll(hostedOs.userHome.pathParts)
+                        newParts.addAll(pathParts)
+                    } else { //Any other path like: /usr/bin
+                        newRoot = hostedOs.nativeFileSystemRoot.root
+                        newParts.addAll(hostedOs.nativeFileSystemRoot.pathParts)
+                        newParts.addAll(pathParts)
+                    }
+                }
+            }
+        } else {
+            newParts.addAll(pathParts)
         }
 
-        val toHosted = osType.isWindowsLike() && targetOsType.isPosixHostedOnWindows()
-        val toNative = osType.isPosixHostedOnWindows() && targetOsType.isWindowsLike()
+        return OsPath(hostedOs.nativeType, newRoot, newParts)
+    }
 
-        require(toHosted || toNative) {
-            "Only paths conversion between Windows and Posix hosted on Windows are supported"
+    fun toHosted(targetOs: OsType<*>): OsPath {
+        check(targetOs.isPosixHostedOnWindows() && ((targetOs.value) as HostedOs).nativeType == osType) {
+            "You can convert only paths to hosted OS-es"
         }
 
         val newParts = mutableListOf<String>()
         var newRoot = ""
 
-        when {
-            toHosted -> {
-                if (isAbsolute) {
-                    //root is like 'C:\'
-                    val drive = root.dropLast(2).lowercase()
+        if (isAbsolute) {
+            //root is like 'C:\'
+            val drive = root.dropLast(2).lowercase()
 
-                    newRoot = "/"
+            newRoot = "/"
 
-                    if (targetOsType == OsType.CYGWIN) {
-                        newParts.add("cygdrive")
-                        newParts.add(drive)
-                    } else {
-                        newParts.add(drive)
-                    }
-                }
-
-                newParts.addAll(pathParts)
+            if (targetOs.value.type == OsType.CYGWIN) {
+                newParts.add("cygdrive")
+                newParts.add(drive)
+            } else {
+                newParts.add(drive)
             }
-
-            toNative -> {
-                if (isAbsolute) {
-                    if (osType == OsType.CYGWIN) {
-                        newRoot = pathParts[1] + ":\\"
-                        newParts.addAll(pathParts.subList(2, pathParts.size))
-                    } else {
-                        newRoot = pathParts[0] + ":\\"
-                        newParts.addAll(pathParts.subList(1, pathParts.size))
-                    }
-                } else {
-                    newParts.addAll(pathParts)
-                }
-            }
-
-            else -> throw IllegalArgumentException("Invalid conversion: $this to $targetOsType")
         }
 
-        return OsPath(targetOsType, newRoot, newParts)
+        newParts.addAll(pathParts)
+
+        return OsPath(targetOs, newRoot, newParts)
     }
 
     override fun toString(): String = "$path [$osType]"

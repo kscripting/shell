@@ -21,7 +21,7 @@ fun URI.toOsPath(): OsPath =
 // Conversion from OsPath
 fun OsPath.toNativePath(): Path = Paths.get(toNativeOsPath().path)
 
-fun OsPath.toNativeOsPath() = if (osType.isPosixHostedOnWindows()) convert(OsType.WINDOWS) else this
+fun OsPath.toNativeOsPath() = if (osType.isPosixHostedOnWindows()) toNative() else this
 
 fun OsPath.toNativeFile(): File = toNativePath().toFile()
 
