@@ -13,6 +13,7 @@ data class OsPath(val osType: OsType<*>, val root: String, val pathParts: List<S
 
     val path get(): String = root + pathParts.joinToString(osType.value.pathSeparator) { it }
 
+    //TODO: maybe we should signalise errors with null? But what then in path?
     val OsPath.leaf get(): String = if (pathParts.isEmpty()) root else pathParts.last()
 
     operator fun div(osPath: OsPath): OsPath = resolve(osPath)
@@ -43,8 +44,9 @@ data class OsPath(val osType: OsType<*>, val root: String, val pathParts: List<S
     }
 
     fun toNative(): OsPath {
-        check(osType.isPosixHostedOnWindows()) {
-            "You can convert only paths on hosted OS-es"
+        if (!osType.isPosixHostedOnWindows()) {
+            //Everything besides Cygwin/Msys is native...
+            return this
         }
 
         val hostedOs = osType.value as HostedOs
@@ -93,8 +95,17 @@ data class OsPath(val osType: OsType<*>, val root: String, val pathParts: List<S
         return OsPath(hostedOs.nativeType, newRoot, newParts)
     }
 
+    fun <E> List<E>.startsWith(list: List<E>): Boolean = (this.size >= list.size && this.subList(0, list.size) == list)
+
+    fun startsWith(osPath: OsPath): Boolean = root == osPath.root && pathParts.startsWith(osPath.pathParts)
+
     fun toHosted(targetOs: OsType<*>): OsPath {
-        check(targetOs.isPosixHostedOnWindows() && ((targetOs.value) as HostedOs).nativeType == osType) {
+        if (osType == targetOs) {
+            //This is already targetOs...
+            return this
+        }
+
+        check(targetOs.isPosixHostedOnWindows() && osType == ((targetOs.value) as HostedOs).nativeType) {
             "You can convert only paths to hosted OS-es"
         }
 
@@ -102,20 +113,37 @@ data class OsPath(val osType: OsType<*>, val root: String, val pathParts: List<S
         var newRoot = ""
 
         if (isAbsolute) {
-            //root is like 'C:\'
-            val drive = root.dropLast(2).lowercase()
+            val hostedOs = targetOs.value as HostedOs
 
-            newRoot = "/"
-
-            if (targetOs.value.type == OsType.CYGWIN) {
-                newParts.add("cygdrive")
-                newParts.add(drive)
+            if (this.startsWith(hostedOs.nativeFileSystemRoot)) {
+                if (pathParts.subList(hostedOs.nativeFileSystemRoot.pathParts.size, pathParts.size).startsWith(hostedOs.userHome.pathParts)) {
+                    //It is user home: ~
+                    newRoot = "~/"
+                    newParts.addAll(pathParts.subList(hostedOs.nativeFileSystemRoot.pathParts.size + hostedOs.userHome.pathParts.size, pathParts.size))
+                } else {
+                    //It is hostedOs root: /
+                    newRoot = "/"
+                    newParts.addAll(pathParts.subList(hostedOs.nativeFileSystemRoot.pathParts.size, pathParts.size))
+                }
             } else {
-                newParts.add(drive)
-            }
-        }
+                //Otherwise:
+                //root is like 'C:\'
+                val drive = root.dropLast(2).lowercase()
 
-        newParts.addAll(pathParts)
+                newRoot = "/"
+
+                if (targetOs.value.type == OsType.CYGWIN) {
+                    newParts.add("cygdrive")
+                    newParts.add(drive)
+                } else {
+                    newParts.add(drive)
+                }
+
+                newParts.addAll(pathParts)
+            }
+        } else {
+            newParts.addAll(pathParts)
+        }
 
         return OsPath(targetOs, newRoot, newParts)
     }

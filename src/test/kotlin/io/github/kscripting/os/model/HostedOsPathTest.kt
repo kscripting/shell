@@ -38,13 +38,17 @@ class HostedOsPathTest {
 
     @Test
     fun `Test Windows to Cygwin`() {
-        assertThat(
-            OsPath.of(OsType.WINDOWS, "C:\\home\\admin\\.kscript").toHosted(OsType.CYGWIN).path
-        ).isEqualTo("/cygdrive/c/home/admin/.kscript")
+        assertThat(OsPath.of(OsType.WINDOWS, "C:\\home\\admin\\.kscript").toHosted(OsType.CYGWIN).path)
+            .isEqualTo("/cygdrive/c/home/admin/.kscript")
 
-        assertThat(
-            OsPath.of(OsType.WINDOWS, "..\\home\\admin\\.kscript").toHosted(OsType.CYGWIN).path
-        ).isEqualTo("../home/admin/.kscript")
+        assertThat(OsPath.of(OsType.WINDOWS, "..\\home\\admin\\.kscript").toHosted(OsType.CYGWIN).path)
+            .isEqualTo("../home/admin/.kscript")
+
+        assertThat(OsPath.of(OsType.WINDOWS, "C:\\Programs\\Cygwin\\home\\admin\\.kscript").toHosted(OsType.CYGWIN).path)
+            .isEqualTo("~/.kscript")
+
+        assertThat(OsPath.of(OsType.WINDOWS, "C:\\Programs\\Cygwin\\usr\\local\\sdk").toHosted(OsType.CYGWIN).path)
+            .isEqualTo("/usr/local/sdk")
     }
 
     @Test
@@ -64,12 +68,16 @@ class HostedOsPathTest {
 
     @Test
     fun `Test Windows to MSys`() {
-        assertThat(
-            OsPath.of(OsType.WINDOWS, "C:\\home\\admin\\.kscript").toHosted(OsType.MSYS).path
-        ).isEqualTo("/c/home/admin/.kscript")
+        assertThat(OsPath.of(OsType.WINDOWS, "C:\\home\\admin\\.kscript").toHosted(OsType.MSYS).path)
+            .isEqualTo("/c/home/admin/.kscript")
 
-        assertThat(
-            OsPath.of(OsType.WINDOWS, "..\\home\\admin\\.kscript").toHosted(OsType.MSYS).path
-        ).isEqualTo("../home/admin/.kscript")
+        assertThat(OsPath.of(OsType.WINDOWS, "..\\home\\admin\\.kscript").toHosted(OsType.MSYS).path)
+            .isEqualTo("../home/admin/.kscript")
+
+        assertThat(OsPath.of(OsType.WINDOWS, "C:\\Programs\\Msys\\home\\admin\\.kscript").toHosted(OsType.MSYS).path)
+            .isEqualTo("~/.kscript")
+
+        assertThat(OsPath.of(OsType.WINDOWS, "C:\\Programs\\Msys\\usr\\local\\sdk").toHosted(OsType.MSYS).path)
+            .isEqualTo("/usr/local/sdk")
     }
 }

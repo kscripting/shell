@@ -19,11 +19,11 @@ fun URI.toOsPath(): OsPath =
 
 
 // Conversion from OsPath
-fun OsPath.toNativePath(): Path = Paths.get(toNativeOsPath().path)
+fun OsPath.toNativePath(): Path = Paths.get(toNative().path)
 
-fun OsPath.toNativeOsPath() = if (osType.isPosixHostedOnWindows()) toNative() else this
+fun OsPath.toNativeFile(): File = File(toNative().path)
 
-fun OsPath.toNativeFile(): File = toNativePath().toFile()
+fun OsPath.toNativeUri(): URI = File(toNative().path).toURI()
 
 
 // OsPath operations
@@ -43,9 +43,6 @@ fun OsPath.readText(charset: Charset = Charsets.UTF_8): String = toNativePath().
 // OsPath accessors
 val OsPath.leaf
     get() = if (pathParts.isEmpty()) "" else pathParts.last()
-
-//val OsPath.root
-//    get() = if (pathParts.isEmpty()) "" else pathParts.first()
 
 //val OsPath.rootOsPath
 //    get() = OsPath.createOrThrow(osType, root)

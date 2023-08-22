@@ -108,15 +108,9 @@ class WindowsOsPathTest {
 
     @Test
     fun `Test Windows stringPath`() {
-        assertThat(
-            OsPath.of(OsType.WINDOWS, "C:\\home\\admin\\.kscript").path
-        ).isEqualTo("C:\\home\\admin\\.kscript")
-        assertThat(
-            OsPath.of(OsType.WINDOWS, "c:\\a\\b\\c\\..\\d\\script").path
-        ).isEqualTo("c:\\a\\b\\d\\script")
-        assertThat(
-            OsPath.of(OsType.WINDOWS, ".\\.\\.\\..\\..\\script").path
-        ).isEqualTo("..\\..\\script")
+        assertThat(OsPath.of(OsType.WINDOWS, "C:\\home\\admin\\.kscript").path).isEqualTo("C:\\home\\admin\\.kscript")
+        assertThat(OsPath.of(OsType.WINDOWS, "c:\\a\\b\\c\\..\\d\\script").path).isEqualTo("c:\\a\\b\\d\\script")
+        assertThat(OsPath.of(OsType.WINDOWS, ".\\.\\.\\..\\..\\script").path).isEqualTo("..\\..\\script")
         assertThat(OsPath.of(OsType.WINDOWS, "script\\file.txt").path).isEqualTo("script\\file.txt")
     }
 }
