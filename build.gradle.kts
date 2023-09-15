@@ -165,7 +165,6 @@ dependencies {
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlinVersion")
     implementation("org.jetbrains.kotlin:kotlin-reflect:$kotlinVersion")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.4")
-    implementation("io.arrow-kt:arrow-core:1.1.2")
     implementation("org.apache.commons:commons-lang3:3.12.0")
     implementation("org.slf4j:slf4j-nop:2.0.5")
 

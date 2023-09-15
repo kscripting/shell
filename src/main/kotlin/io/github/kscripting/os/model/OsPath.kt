@@ -1,8 +1,5 @@
 package io.github.kscripting.os.model
 
-import arrow.core.Either
-import arrow.core.left
-import arrow.core.right
 import io.github.kscripting.os.instance.HostedOs
 
 //Path representation for different OSes
@@ -35,11 +32,7 @@ data class OsPath(val osType: OsType<*>, val root: String, val pathParts: List<S
             addAll(osPath.pathParts)
         }
 
-        val normalizedPath = when (val result = normalize(root, newPathParts)) {
-            is Either.Right -> result.value
-            is Either.Left -> throw IllegalArgumentException(result.value)
-        }
-
+        val normalizedPath = normalize(root, newPathParts).getOrThrow()
         return OsPath(osType, root, normalizedPath)
     }
 
@@ -116,10 +109,17 @@ data class OsPath(val osType: OsType<*>, val root: String, val pathParts: List<S
             val hostedOs = targetOs.value as HostedOs
 
             if (this.startsWith(hostedOs.nativeFileSystemRoot)) {
-                if (pathParts.subList(hostedOs.nativeFileSystemRoot.pathParts.size, pathParts.size).startsWith(hostedOs.userHome.pathParts)) {
+                if (pathParts.subList(hostedOs.nativeFileSystemRoot.pathParts.size, pathParts.size)
+                        .startsWith(hostedOs.userHome.pathParts)
+                ) {
                     //It is user home: ~
                     newRoot = "~/"
-                    newParts.addAll(pathParts.subList(hostedOs.nativeFileSystemRoot.pathParts.size + hostedOs.userHome.pathParts.size, pathParts.size))
+                    newParts.addAll(
+                        pathParts.subList(
+                            hostedOs.nativeFileSystemRoot.pathParts.size + hostedOs.userHome.pathParts.size,
+                            pathParts.size
+                        )
+                    )
                 } else {
                     //It is hostedOs root: /
                     newRoot = "/"
@@ -177,10 +177,7 @@ data class OsPath(val osType: OsType<*>, val root: String, val pathParts: List<S
         fun of(osType: OsType<*>, vararg pathParts: String): OsPath = of(osType, pathParts.toList())
 
         fun of(osType: OsType<*>, pathParts: List<String>): OsPath {
-            return when (val result = internalCreate(osType, pathParts)) {
-                is Either.Right -> result.value
-                is Either.Left -> throw IllegalArgumentException(result.value)
-            }
+            return create(osType, pathParts).getOrThrow()
         }
 
         fun ofOrNull(vararg pathParts: String): OsPath? = ofOrNull(OsType.native, pathParts.toList())
@@ -188,16 +185,18 @@ data class OsPath(val osType: OsType<*>, val root: String, val pathParts: List<S
         fun ofOrNull(osType: OsType<*>, vararg pathParts: String): OsPath? = ofOrNull(osType, pathParts.toList())
 
         fun ofOrNull(osType: OsType<*>, pathParts: List<String>): OsPath? {
-            return when (val result = internalCreate(osType, pathParts)) {
-                is Either.Right -> result.value
-                is Either.Left -> null
-            }
+            return create(osType, pathParts).getOrNull()
         }
 
         //Relaxed validation:
         //1. It doesn't matter if there is '/' or '\' used as path separator - both are treated the same
         //2. Duplicated or trailing slashes '/' and backslashes '\' are just ignored
-        private fun internalCreate(osType: OsType<*>, pathParts: List<String>): Either<String, OsPath> {
+
+        fun create(osType: OsType<*>, vararg pathParts: String): Result<OsPath> {
+            return create(osType, pathParts.toList())
+        }
+
+        fun create(osType: OsType<*>, pathParts: List<String>): Result<OsPath> {
             val path = pathParts.joinToString("/")
 
             //Detect root
@@ -219,22 +218,21 @@ data class OsPath(val osType: OsType<*>, val root: String, val pathParts: List<S
             //Remove also empty path parts - there were duplicated or trailing slashes / backslashes in initial path
             val pathPartsResolved = path.drop(root.length).split('/', '\\').filter { it.isNotBlank() }
 
-            val normalizedPath = when (val result = normalize(root, pathPartsResolved)) {
-                is Either.Right -> result.value
-                is Either.Left -> return result.value.left()
+            val normalizedPath = normalize(root, pathPartsResolved).getOrElse {
+                return Result.failure(it)
             }
 
             //Validate root element of path and find out if it is absolute or relative
             val forbiddenCharacter = path.substring(root.length).find { forbiddenCharacters.contains(it) }
 
             if (forbiddenCharacter != null) {
-                return "Invalid character '$forbiddenCharacter' in path '$path'".left()
+                return Result.failure(IllegalArgumentException("Invalid character '$forbiddenCharacter' in path '$path'"))
             }
 
-            return OsPath(osType, root, normalizedPath).right()
+            return Result.success(OsPath(osType, root, normalizedPath))
         }
 
-        fun normalize(root: String, pathParts: List<String>): Either<String, List<String>> {
+        fun normalize(root: String, pathParts: List<String>): Result<List<String>> {
             //Relative:
             // ./../ --> ../
             // ./a/../ --> ./
@@ -256,7 +254,7 @@ data class OsPath(val osType: OsType<*>, val root: String, val pathParts: List<S
                     //Just skip . without adding it to newParts
                 } else if (pathParts[index] == "..") {
                     if (isAbsolute && newParts.size == 0) {
-                        return "Path after normalization goes beyond root element: '$root'".left()
+                        return Result.failure(IllegalArgumentException("Path after normalization goes beyond root element: '$root'"))
                     }
 
                     if (newParts.size > 0) {
@@ -285,7 +283,7 @@ data class OsPath(val osType: OsType<*>, val root: String, val pathParts: List<S
                 index += 1
             }
 
-            return newParts.right()
+            return Result.success(newParts)
         }
     }
 }

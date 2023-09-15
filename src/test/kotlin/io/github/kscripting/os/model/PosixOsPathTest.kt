@@ -101,9 +101,11 @@ class PosixOsPathTest {
             it.prop(OsPath::pathParts).isEqualTo(listOf("a", "b", "d", "script"))
         }
 
-        assertThat { OsPath.of(OsType.LINUX, "/.kscript/../../") }.isFailure()
-            .isInstanceOf(IllegalArgumentException::class.java)
-            .hasMessage("Path after normalization goes beyond root element: '/'")
+        OsPath.create(OsType.LINUX, "/.kscript/../../").let {
+            assertThat(it.isFailure).isTrue()
+            assertThat(it.exceptionOrNull()).isNotNull().isInstanceOf(IllegalArgumentException::class.java)
+                .hasMessage("Path after normalization goes beyond root element: '/'")
+        }
     }
 
     @Test

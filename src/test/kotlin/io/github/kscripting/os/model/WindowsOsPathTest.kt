@@ -2,9 +2,21 @@ package io.github.kscripting.os.model
 
 import assertk.assertThat
 import assertk.assertions.*
+import io.github.kscripting.os.instance.CygwinOs
+import io.github.kscripting.os.instance.MsysOs
+import io.github.kscripting.os.instance.WindowsOs
+import net.igsoft.typeutils.globalcontext.GlobalContext
+import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.TestInstance
 
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class WindowsOsPathTest {
+    @BeforeAll
+    fun beforeAll() {
+        GlobalContext.registerOrReplace(OsType.WINDOWS, WindowsOs("C:\\Users\\Admin\\.kscript"))
+    }
+
     @Test
     fun `Test Windows paths`() {
         assertThat(OsPath.of(OsType.WINDOWS, "C:\\")).let {
@@ -90,9 +102,11 @@ class WindowsOsPathTest {
             it.prop(OsPath::pathParts).isEqualTo(listOf("a", "b", "d", "script"))
         }
 
-        assertThat { OsPath.of(OsType.WINDOWS, "C:\\.kscript\\..\\..\\") }.isFailure()
-            .isInstanceOf(IllegalArgumentException::class.java)
-            .hasMessage("Path after normalization goes beyond root element: 'C:\\'")
+        OsPath.create(OsType.WINDOWS, "C:\\.kscript\\..\\..\\").let {
+            assertThat(it.isFailure).isTrue()
+            assertThat(it.exceptionOrNull()).isNotNull().isInstanceOf(IllegalArgumentException::class.java)
+                .hasMessage("Path after normalization goes beyond root element: 'C:\\'")
+        }
     }
 
     @Test
