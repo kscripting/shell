@@ -2,11 +2,11 @@ package io.github.kscripting.os.model
 
 import io.github.kscripting.os.Os
 import io.github.kscripting.os.instance.*
-import net.igsoft.typeutils.enum.TypedEnumCompanion
 import net.igsoft.typeutils.globalcontext.GlobalContext
 import net.igsoft.typeutils.marker.AutoTypedMarker
 import net.igsoft.typeutils.marker.DefaultTypedMarker
 import net.igsoft.typeutils.marker.TypedMarker
+import net.igsoft.typeutils.typedenum.TypedEnumCompanion
 import org.apache.commons.lang3.SystemUtils
 
 
@@ -20,12 +20,12 @@ class OsType<T : Os> private constructor(private val marker: TypedMarker<T>) : D
     fun isWindowsLike() = (this == WINDOWS)
 
     companion object : TypedEnumCompanion<OsType<out Os>>() {
-        val LINUX by register(OsType(AutoTypedMarker.create<LinuxOs>()))
-        val WINDOWS by register(OsType(AutoTypedMarker.create<WindowsOs>()))
-        val CYGWIN by register(OsType(AutoTypedMarker.create<CygwinOs>()))
-        val MSYS by register(OsType(AutoTypedMarker.create<MsysOs>()))
-        val MACOS by register(OsType(AutoTypedMarker.create<MacOs>()))
-        val FREEBSD by register(OsType(AutoTypedMarker.create<FreeBsdOs>()))
+        val LINUX = OsType(AutoTypedMarker.create<LinuxOs>())
+        val WINDOWS = OsType(AutoTypedMarker.create<WindowsOs>())
+        val CYGWIN = OsType(AutoTypedMarker.create<CygwinOs>())
+        val MSYS = OsType(AutoTypedMarker.create<MsysOs>())
+        val MACOS = OsType(AutoTypedMarker.create<MacOs>())
+        val FREEBSD = OsType(AutoTypedMarker.create<FreeBsdOs>())
 
         val native: OsType<out Os> = guessNativeType()
 

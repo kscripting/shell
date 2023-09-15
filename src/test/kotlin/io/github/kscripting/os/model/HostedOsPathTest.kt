@@ -15,7 +15,7 @@ class HostedOsPathTest {
 
     @BeforeAll
     fun beforeAll() {
-        //Installation cygwin/msys base path: cygpath -w /
+        //Installation cygwin/msys base path: cygpath -w /, cygpath ~
         GlobalContext.registerOrReplace(OsType.CYGWIN, CygwinOs("/home/admin", "C:\\Programs\\Cygwin\\"))
         GlobalContext.registerOrReplace(OsType.MSYS, MsysOs("/home/admin", "C:\\Programs\\Msys\\"))
         GlobalContext.registerOrReplace(OsType.WINDOWS, WindowsOs("C:\\Users\\Admin\\.kscript"))

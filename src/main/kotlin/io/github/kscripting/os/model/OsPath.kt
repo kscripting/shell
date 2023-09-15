@@ -11,10 +11,10 @@ data class OsPath(val osType: OsType<*>, val root: String, val pathParts: List<S
     val isRelative: Boolean get() = root.isEmpty()
     val isAbsolute: Boolean get() = !isRelative
 
-    val path get(): String = root + pathParts.joinToString(osType.value.pathSeparator) { it }
+    val path: String get() = root + pathParts.joinToString(osType.value.pathSeparator) { it }
 
-    //TODO: maybe we should signalise errors with null? But what then in path?
-    val OsPath.leaf get(): String = if (pathParts.isEmpty()) root else pathParts.last()
+    //TODO: maybe we should signalise errors with null root? But what then in path?
+    val OsPath.leaf: String get() = if (pathParts.isEmpty()) root else pathParts.last()
 
     operator fun div(osPath: OsPath): OsPath = resolve(osPath)
     operator fun div(path: String): OsPath = resolve(path)
