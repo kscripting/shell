@@ -8,5 +8,5 @@ class MacOs(userHome: String) : Os {
     override val osTypePrefix: String = "darwin"
     override val type: OsType<MacOs> = OsType.MACOS
     override val pathSeparator: String get() = "/"
-    override val userHome: OsPath = OsPath.of(OsType.MACOS, userHome).getOrThrow()
+    override val userHome: OsPath = OsPath(OsType.MACOS, userHome).getOrThrow()
 }

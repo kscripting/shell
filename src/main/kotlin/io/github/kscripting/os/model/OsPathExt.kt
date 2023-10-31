@@ -64,20 +64,24 @@ fun OsPath.toNative(): Result<OsPath> {
         newParts.addAll(pathParts)
     }
 
-    return Result.success(OsPath(hostedOs.nativeType, newRoot, newParts))
+    return OsPath(hostedOs.nativeType, newRoot, newParts)
 }
 
 fun Result<OsPath>.toNative(): Result<OsPath> = flatMap { it.toNative() }
 
 
-fun OsPath.toHosted(targetOs: OsType<*>): Result<OsPath> {
+fun <E> List<E>.startsWith(list: List<E>): Boolean = (this.size >= list.size && this.subList(0, list.size) == list)
+
+fun OsPath.startsWith(osPath: OsPath): Boolean = root == osPath.root && pathParts.startsWith(osPath.pathParts)
+
+fun OsPath.toHosted(targetOs: OsType<*>): Result<OsPath> = runCatching{
     if (osType == targetOs) {
         //This is already targetOs...
         return Result.success(this)
     }
 
     if (!(targetOs.isPosixHostedOnWindows() && osType == ((targetOs.value) as HostedOs).nativeType)) {
-        return Result.failure(IllegalArgumentException("You can convert only paths to hosted OS-es"))
+        throw OsPathError.InvalidConversion("You can convert only paths to hosted OS-es")
     }
 
     val newParts = mutableListOf<String>()
@@ -123,7 +127,7 @@ fun OsPath.toHosted(targetOs: OsType<*>): Result<OsPath> {
         newParts.addAll(pathParts)
     }
 
-    return Result.success(OsPath(targetOs, newRoot, newParts))
+    return OsPath(targetOs, newRoot, newParts)
 }
 
 fun Result<OsPath>.toHosted(targetOs: OsType<*>): Result<OsPath> = flatMap { it.toHosted(targetOs) }
@@ -132,9 +136,9 @@ fun Result<OsPath>.toHosted(targetOs: OsType<*>): Result<OsPath> = flatMap { it.
 val Result<OsPath>.path: Result<String> get() = map { it.path }
 
 // Conversion to OsPath
-fun File.toOsPath(): Result<OsPath> = OsPath.of(OsType.native, absolutePath)
+fun File.toOsPath(): Result<OsPath> = OsPath(OsType.native, absolutePath)
 
-fun Path.toOsPath(): Result<OsPath> = OsPath.of(OsType.native, absolutePathString())
+fun Path.toOsPath(): Result<OsPath> = OsPath(OsType.native, absolutePathString())
 
 fun URI.toOsPath(): Result<OsPath> =
     if (this.scheme == "file") File(this).toOsPath() else Result.failure(IllegalArgumentException("Invalid conversion from URL to OsPath"))
@@ -153,37 +157,32 @@ fun OsPath.toNativeUri(): Result<URI> = toNative().path.map { File(it).toURI() }
 fun OsPath.exists(): Result<Boolean> = toNativePath().map { it.exists() }
 val Result<OsPath>.exists: Result<Boolean> get() = flatMap { it.exists() }
 
-fun OsPath.createDirectories(): Result<OsPath> {
-    val path = toNativePath().getOrElse { return Result.failure(it) }
-    val createPath = Result.runCatching { path.createDirectories().pathString }.getOrElse { return Result.failure(it) }
-
-    return OsPath.of(nativeType, createPath)
+fun OsPath.createDirectories(): Result<OsPath> = Result.runCatching {
+    return OsPath(nativeType, toNativePath().getOrThrow().createDirectories().pathString)
 }
 
 fun Result<OsPath>.createDirectories(): Result<OsPath> = flatMap { it.createDirectories() }
 
 
-fun OsPath.copyTo(target: OsPath, overwrite: Boolean = false): Result<OsPath> {
-    val sourcePath = toNativePath().getOrElse { return Result.failure(it) }
-    val targetPath = target.toNativePath().getOrElse { return Result.failure(it) }
-    val copyPath = Result.runCatching { sourcePath.copyTo(targetPath, overwrite).pathString }
-        .getOrElse { return Result.failure(it) }
-
-    return OsPath.of(nativeType, copyPath)
+fun OsPath.copyTo(target: OsPath, overwrite: Boolean = false): Result<OsPath> = Result.run {
+    return OsPath(
+        nativeType,
+        toNativePath().getOrThrow().copyTo(target.toNativePath().getOrThrow(), overwrite).pathString
+    )
 }
 
 fun Result<OsPath>.copyTo(target: OsPath, overwrite: Boolean = false): Result<OsPath> =
     flatMap { it.copyTo(target, overwrite) }
 
-fun OsPath.writeText(text: CharSequence, charset: Charset = Charsets.UTF_8, vararg options: OpenOption): Result<Unit> {
-    val path = toNativePath().getOrElse { return Result.failure(it) }
-    return Result.runCatching { path.writeText(text, charset, *options) }
+fun OsPath.writeText(text: CharSequence, charset: Charset = Charsets.UTF_8, vararg options: OpenOption): Result<Unit> =
+    runCatching {
+        toNativePath().getOrThrow().writeText(text, charset, *options)
+    }
+
+fun OsPath.readText(charset: Charset = Charsets.UTF_8): Result<String> = runCatching {
+    toNativePath().getOrThrow().readText(charset)
 }
 
-fun OsPath.readText(charset: Charset = Charsets.UTF_8): Result<String> {
-    val path = toNativePath().getOrElse { return Result.failure(it) }
-    return Result.runCatching { path.readText(charset) }
-}
 fun Result<OsPath>.readText(charset: Charset = Charsets.UTF_8): Result<String> = flatMap { it.readText(charset) }
 
 
@@ -194,7 +193,7 @@ operator fun OsPath.div(path: String): Result<OsPath> = resolve(path)
 operator fun Result<OsPath>.div(path: String): Result<OsPath> = flatMap { it.div(path) }
 
 
-fun OsPath.resolve(vararg pathParts: String): Result<OsPath> = resolve(OsPath.of(osType, *pathParts).getOrThrow())
+fun OsPath.resolve(vararg pathParts: String): Result<OsPath> = resolve(OsPath(osType, *pathParts).getOrThrow())
 fun Result<OsPath>.resolve(vararg pathParts: String): Result<OsPath> = flatMap { it.resolve(*pathParts) }
 
 fun OsPath.resolve(osPath: OsPath): Result<OsPath> {
@@ -212,8 +211,9 @@ fun OsPath.resolve(osPath: OsPath): Result<OsPath> {
     }
 
     val normalizedPath = OsPath.normalize(root, newPathParts).getOrElse { return Result.failure(it) }
-    return Result.success(OsPath(osType, root, normalizedPath))
+    return OsPath(osType, root, normalizedPath)
 }
+
 fun Result<OsPath>.resolve(osPath: OsPath): Result<OsPath> = flatMap { it.resolve(osPath) }
 fun Result<OsPath>.resolve(osPath: Result<OsPath>): Result<OsPath> {
     val currentPath = this.getOrElse { return Result.failure(it) }
@@ -223,8 +223,6 @@ fun Result<OsPath>.resolve(osPath: Result<OsPath>): Result<OsPath> {
 
 
 // OsPath accessors
-val OsPath.leaf
-    get() = if (pathParts.isEmpty()) "" else pathParts.last()
 
 //val OsPath.rootOsPath
 //    get() = OsPath.createOrThrow(osType, root)

@@ -1,22 +1,21 @@
 package io.github.kscripting.os.model
 
+sealed interface OsPathError {
+    object EmptyPath : OsPathError, RuntimeException()
+    data class InvalidConversion(val errorMessage: String) : OsPathError, RuntimeException(errorMessage)
+}
+
 //Path representation for different OSes
 @Suppress("MemberVisibilityCanBePrivate")
-data class OsPath(val osType: OsType<*>, val root: String, val pathParts: List<String>) {
-    val isRelative: Boolean get() = root.isEmpty()
-    val isAbsolute: Boolean get() = !isRelative
+data class OsPath private constructor(val osType: OsType<*>, val root: String, val pathParts: List<String>) {
+    val isRelative: Boolean get() = root.isEmpty() && pathParts.isNotEmpty()
+    val isAbsolute: Boolean get() = root.isNotEmpty()
+    val isEmpty: Boolean get() = root.isEmpty() && pathParts.isEmpty()
 
     val path: String get() = root + pathParts.joinToString(osType.value.pathSeparator) { it }
+    val leaf: String get() = if (pathParts.isEmpty()) root else pathParts.last()
 
-    //TODO: maybe we should signalise errors with null root? But what then in path?
-    val OsPath.leaf: String get() = if (pathParts.isEmpty()) root else pathParts.last()
-
-
-    fun <E> List<E>.startsWith(list: List<E>): Boolean = (this.size >= list.size && this.subList(0, list.size) == list)
-
-    fun startsWith(osPath: OsPath): Boolean = root == osPath.root && pathParts.startsWith(osPath.pathParts)
-
-    override fun toString(): String = "$path [$osType]"
+    override fun toString(): String = if (isEmpty) "[$osType]" else "$path [$osType]"
 
     companion object {
         //https://stackoverflow.com/questions/1976007/what-characters-are-forbidden-in-windows-and-linux-directory-names
@@ -44,15 +43,19 @@ data class OsPath(val osType: OsType<*>, val root: String, val pathParts: List<S
         //1. It doesn't matter if there is '/' or '\' used as path separator - both are treated the same
         //2. Duplicated or trailing slashes '/' and backslashes '\' are just ignored
 
-        fun of(vararg pathParts: String): Result<OsPath> {
-            return of(OsType.native, pathParts.toList())
+        operator fun invoke(osType: OsType<*>, root: String, pathParts: List<String>): Result<OsPath> {
+            return Result.success(OsPath(osType, root, pathParts))
         }
 
-        fun of(osType: OsType<*>, vararg pathParts: String): Result<OsPath> {
-            return of(osType, pathParts.toList())
+        operator fun invoke(vararg pathParts: String): Result<OsPath> {
+            return invoke(OsType.native, pathParts.toList())
         }
 
-        fun of(osType: OsType<*>, pathParts: List<String>): Result<OsPath> {
+        operator fun invoke(osType: OsType<*>, vararg pathParts: String): Result<OsPath> {
+            return invoke(osType, pathParts.toList())
+        }
+
+        operator fun invoke(osType: OsType<*>, pathParts: List<String>): Result<OsPath> {
             val path = pathParts.joinToString("/")
 
             //Detect root
