@@ -8,5 +8,5 @@ class FreeBsdOs(userHome: String) : Os {
     override val osTypePrefix: String = "freebsd"
     override val type: OsType<FreeBsdOs> = OsType.FREEBSD
     override val pathSeparator: String get() = "/"
-    override val userHome: OsPath = OsPath.of(OsType.FREEBSD, userHome)
+    override val userHome: OsPath = OsPath.of(OsType.FREEBSD, userHome).getOrThrow()
 }

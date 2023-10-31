@@ -1,6 +1,7 @@
 package io.github.kscripting.shell.integration
 
 import io.github.kscripting.os.model.readText
+import io.github.kscripting.os.model.resolve
 import io.github.kscripting.shell.integration.tools.ShellTestBase
 import io.github.kscripting.shell.integration.tools.TestContext
 import io.github.kscripting.shell.integration.tools.TestContext.execPath
@@ -26,7 +27,7 @@ class ShellExecutorTest : ShellTestBase {
         verify(
             "doEcho -f $path",
             0,
-            path.readText(),
+            path.readText().getOrThrow(),
             "",
             inputSanitizer = Sanitizer.EMPTY_SANITIZER,
             outputSanitizer = Sanitizer.EMPTY_SANITIZER

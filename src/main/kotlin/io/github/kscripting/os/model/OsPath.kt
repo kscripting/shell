@@ -1,7 +1,5 @@
 package io.github.kscripting.os.model
 
-import io.github.kscripting.os.instance.HostedOs
-
 //Path representation for different OSes
 @Suppress("MemberVisibilityCanBePrivate")
 data class OsPath(val osType: OsType<*>, val root: String, val pathParts: List<String>) {
@@ -13,140 +11,10 @@ data class OsPath(val osType: OsType<*>, val root: String, val pathParts: List<S
     //TODO: maybe we should signalise errors with null root? But what then in path?
     val OsPath.leaf: String get() = if (pathParts.isEmpty()) root else pathParts.last()
 
-    operator fun div(osPath: OsPath): OsPath = resolve(osPath)
-    operator fun div(path: String): OsPath = resolve(path)
-
-    fun resolve(vararg pathParts: String): OsPath = resolve(of(osType, *pathParts))
-
-    fun resolve(osPath: OsPath): OsPath {
-        require(osType == osPath.osType) {
-            "Paths from different OS's: '${osType}' path can not be resolved with '${osPath.osType}' path"
-        }
-
-        require(osPath.isRelative) {
-            "Can not resolve absolute or relative path '${path}' using absolute path '${osPath.path}'"
-        }
-
-        val newPathParts = buildList {
-            addAll(pathParts)
-            addAll(osPath.pathParts)
-        }
-
-        val normalizedPath = normalize(root, newPathParts).getOrThrow()
-        return OsPath(osType, root, normalizedPath)
-    }
-
-    fun toNative(): OsPath {
-        if (!osType.isPosixHostedOnWindows()) {
-            //Everything besides Cygwin/Msys is native...
-            return this
-        }
-
-        val hostedOs = osType.value as HostedOs
-
-        val newParts = mutableListOf<String>()
-        var newRoot = ""
-
-        if (isAbsolute) {
-            when (osType) {
-                OsType.CYGWIN -> {
-                    if (pathParts[0].equals("cygdrive", true)) { //Paths referring /cygdrive
-                        newRoot = pathParts[1] + ":\\"
-                        newParts.addAll(pathParts.subList(2, pathParts.size))
-                    } else if (root == "~") { //Paths starting with ~
-                        newRoot = hostedOs.nativeFileSystemRoot.root
-                        newParts.addAll(hostedOs.nativeFileSystemRoot.pathParts)
-                        newParts.addAll(hostedOs.userHome.pathParts)
-                        newParts.addAll(pathParts)
-                    } else { //Any other path like: /usr/bin
-                        newRoot = hostedOs.nativeFileSystemRoot.root
-                        newParts.addAll(hostedOs.nativeFileSystemRoot.pathParts)
-                        newParts.addAll(pathParts)
-                    }
-                }
-
-                OsType.MSYS -> {
-                    if (pathParts[0].length == 1 && (pathParts[0][0].code in 65..90 || pathParts[0][0].code in 97..122)) { //Paths referring with drive letter at the beginning
-                        newRoot = pathParts[0] + ":\\"
-                        newParts.addAll(pathParts.subList(1, pathParts.size))
-                    } else if (root == "~") { //Paths starting with ~
-                        newRoot = hostedOs.nativeFileSystemRoot.root
-                        newParts.addAll(hostedOs.nativeFileSystemRoot.pathParts)
-                        newParts.addAll(hostedOs.userHome.pathParts)
-                        newParts.addAll(pathParts)
-                    } else { //Any other path like: /usr/bin
-                        newRoot = hostedOs.nativeFileSystemRoot.root
-                        newParts.addAll(hostedOs.nativeFileSystemRoot.pathParts)
-                        newParts.addAll(pathParts)
-                    }
-                }
-            }
-        } else {
-            newParts.addAll(pathParts)
-        }
-
-        return OsPath(hostedOs.nativeType, newRoot, newParts)
-    }
 
     fun <E> List<E>.startsWith(list: List<E>): Boolean = (this.size >= list.size && this.subList(0, list.size) == list)
 
     fun startsWith(osPath: OsPath): Boolean = root == osPath.root && pathParts.startsWith(osPath.pathParts)
-
-    fun toHosted(targetOs: OsType<*>): OsPath {
-        if (osType == targetOs) {
-            //This is already targetOs...
-            return this
-        }
-
-        check(targetOs.isPosixHostedOnWindows() && osType == ((targetOs.value) as HostedOs).nativeType) {
-            "You can convert only paths to hosted OS-es"
-        }
-
-        val newParts = mutableListOf<String>()
-        var newRoot = ""
-
-        if (isAbsolute) {
-            val hostedOs = targetOs.value as HostedOs
-
-            if (this.startsWith(hostedOs.nativeFileSystemRoot)) {
-                if (pathParts.subList(hostedOs.nativeFileSystemRoot.pathParts.size, pathParts.size)
-                        .startsWith(hostedOs.userHome.pathParts)
-                ) {
-                    //It is user home: ~
-                    newRoot = "~/"
-                    newParts.addAll(
-                        pathParts.subList(
-                            hostedOs.nativeFileSystemRoot.pathParts.size + hostedOs.userHome.pathParts.size,
-                            pathParts.size
-                        )
-                    )
-                } else {
-                    //It is hostedOs root: /
-                    newRoot = "/"
-                    newParts.addAll(pathParts.subList(hostedOs.nativeFileSystemRoot.pathParts.size, pathParts.size))
-                }
-            } else {
-                //Otherwise:
-                //root is like 'C:\'
-                val drive = root.dropLast(2).lowercase()
-
-                newRoot = "/"
-
-                if (targetOs.value.type == OsType.CYGWIN) {
-                    newParts.add("cygdrive")
-                    newParts.add(drive)
-                } else {
-                    newParts.add(drive)
-                }
-
-                newParts.addAll(pathParts)
-            }
-        } else {
-            newParts.addAll(pathParts)
-        }
-
-        return OsPath(targetOs, newRoot, newParts)
-    }
 
     override fun toString(): String = "$path [$osType]"
 
@@ -172,31 +40,19 @@ data class OsPath(val osType: OsType<*>, val root: String, val pathParts: List<S
             "^([a-zA-Z]:(?=[\\\\/])|\\\\\\\\(?:[^*:<>?\\\\/|]+\\\\[^*:<>?\\\\/|]+|\\?\\\\(?:[a-zA-Z]:(?=\\\\)|(?:UNC\\\\)?[^*:<>?\\\\/|]+\\\\[^*:<>?\\\\/|]+)))".toRegex()
 
 
-        fun of(vararg pathParts: String): OsPath = of(OsType.native, pathParts.toList())
-
-        fun of(osType: OsType<*>, vararg pathParts: String): OsPath = of(osType, pathParts.toList())
-
-        fun of(osType: OsType<*>, pathParts: List<String>): OsPath {
-            return create(osType, pathParts).getOrThrow()
-        }
-
-        fun ofOrNull(vararg pathParts: String): OsPath? = ofOrNull(OsType.native, pathParts.toList())
-
-        fun ofOrNull(osType: OsType<*>, vararg pathParts: String): OsPath? = ofOrNull(osType, pathParts.toList())
-
-        fun ofOrNull(osType: OsType<*>, pathParts: List<String>): OsPath? {
-            return create(osType, pathParts).getOrNull()
-        }
-
         //Relaxed validation:
         //1. It doesn't matter if there is '/' or '\' used as path separator - both are treated the same
         //2. Duplicated or trailing slashes '/' and backslashes '\' are just ignored
 
-        fun create(osType: OsType<*>, vararg pathParts: String): Result<OsPath> {
-            return create(osType, pathParts.toList())
+        fun of(vararg pathParts: String): Result<OsPath> {
+            return of(OsType.native, pathParts.toList())
         }
 
-        fun create(osType: OsType<*>, pathParts: List<String>): Result<OsPath> {
+        fun of(osType: OsType<*>, vararg pathParts: String): Result<OsPath> {
+            return of(osType, pathParts.toList())
+        }
+
+        fun of(osType: OsType<*>, pathParts: List<String>): Result<OsPath> {
             val path = pathParts.joinToString("/")
 
             //Detect root

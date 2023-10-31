@@ -53,7 +53,7 @@ object ProcessRunner {
         try {
             // simplify with https://stackoverflow.com/questions/35421699/how-to-invoke-external-command-from-within-kotlin-code
             val process = ProcessBuilder(command)
-                .directory(workingDirectory?.toNativeFile())
+                .directory(workingDirectory?.toNativeFile()?.getOrNull())
                 .redirectInput(if (inheritInput) ProcessBuilder.Redirect.INHERIT else ProcessBuilder.Redirect.PIPE)
                 .redirectOutput(ProcessBuilder.Redirect.PIPE)
                 .apply {

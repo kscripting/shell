@@ -160,7 +160,7 @@ signing {
 }
 
 dependencies {
-    api("net.igsoft:typeutils:0.6.0-SNAPSHOT")
+    api("net.igsoft:typeutils:0.7.0-SNAPSHOT")
 
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlinVersion")
     implementation("org.jetbrains.kotlin:kotlin-reflect:$kotlinVersion")
@@ -173,7 +173,7 @@ dependencies {
     testImplementation("org.junit.platform:junit-platform-suite-commons:1.9.0")
     testImplementation("org.junit.jupiter:junit-jupiter-engine:5.9.0")
     testImplementation("org.junit.jupiter:junit-jupiter-params:5.9.0")
-    testImplementation("com.willowtreeapps.assertk:assertk-jvm:0.25")
+    testImplementation("com.willowtreeapps.assertk:assertk-jvm:0.27.0")
     testImplementation("io.mockk:mockk:1.13.2")
 
     testImplementation(kotlin("script-runtime"))

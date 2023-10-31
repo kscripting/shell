@@ -9,5 +9,5 @@ class WindowsOs(userHome: String) : Os {
     override val osTypePrefix: String = "windows"
     override val type: OsType<WindowsOs> = OsType.WINDOWS
     override val pathSeparator: String get() = "\\"
-    override val userHome: OsPath = OsPath.of(type, userHome)
+    override val userHome: OsPath = OsPath.of(type, userHome).getOrThrow()
 }
