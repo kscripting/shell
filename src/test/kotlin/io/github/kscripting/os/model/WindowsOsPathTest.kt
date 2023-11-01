@@ -117,11 +117,11 @@ class WindowsOsPathTest {
     fun `Test invalid Windows paths`() {
         assertFailure { OsPath(OsType.WINDOWS, "C:\\adas?df") }
             .isInstanceOf(IllegalArgumentException::class.java)
-            .hasMessage("Invalid character '?' in path 'C:\\adas?df'")
+            .hasMessage("Invalid character '?' in path part 'adas?df'")
 
         assertFailure { OsPath(OsType.WINDOWS, "home:\\vagrant") }
             .isInstanceOf(IllegalArgumentException::class.java)
-            .hasMessage("Invalid character ':' in path 'home:\\vagrant'")
+            .hasMessage("Invalid character ':' in path part 'home:'")
     }
 
     @Test

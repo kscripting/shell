@@ -179,8 +179,7 @@ fun OsPath.resolve(osPath: OsPath): OsPath {
         addAll(osPath.pathParts)
     }
 
-    val normalizedPath = OsPath.normalize(root, newPathParts)
-    return OsPath(osType, root, normalizedPath)
+    return OsPath.normalize(osType, root, newPathParts)
 }
 
 // OsPath accessors

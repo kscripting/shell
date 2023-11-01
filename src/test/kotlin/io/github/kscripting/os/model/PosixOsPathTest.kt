@@ -116,7 +116,7 @@ class PosixOsPathTest {
                 OsType.LINUX,
                 "/ad*asdf"
             )
-        }.isInstanceOf(IllegalArgumentException::class.java).hasMessage("Invalid character '*' in path '/ad*asdf'")
+        }.isInstanceOf(IllegalArgumentException::class.java).hasMessage("Invalid character '*' in path part 'ad*asdf'")
     }
 
     @Test

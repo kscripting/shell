@@ -43,12 +43,13 @@ data class OsPath private constructor(val osType: OsType<*>, val root: String, v
         //2. Duplicated or trailing slashes '/' and backslashes '\' are just ignored
 
         operator fun invoke(osType: OsType<*>, root: String, pathParts: List<String>): OsPath {
-            //TODO: verify root - do not allow empty paths
-            if (root.isEmpty() && pathParts.isEmpty()) {
+            val newRoot = root.trim()
+
+            if (newRoot.isEmpty() && pathParts.isEmpty()) {
                 throw OsPathError.EmptyPath
             }
 
-            return OsPath(osType, root, pathParts)
+            return normalize(validate(OsPath(osType, newRoot, pathParts)))
         }
 
         operator fun invoke(vararg pathParts: String): OsPath {
@@ -80,19 +81,26 @@ data class OsPath private constructor(val osType: OsType<*>, val root: String, v
 
             //Remove also empty path parts - there were duplicated or trailing slashes / backslashes in initial path
             val pathPartsResolved = path.drop(root.length).split('/', '\\').filter { it.isNotBlank() }
-            val normalizedPath = normalize(root, pathPartsResolved)
 
-            //Validate root element of path and find out if it is absolute or relative
-            val forbiddenCharacter = path.substring(root.length).find { forbiddenCharacters.contains(it) }
-
-            if (forbiddenCharacter != null) {
-                throw IllegalArgumentException("Invalid character '$forbiddenCharacter' in path '$path'")
-            }
-
-            return OsPath(osType, root, normalizedPath)
+            return normalize(validate(OsPath(osType, root, pathPartsResolved)))
         }
 
-        fun normalize(root: String, pathParts: List<String>): List<String> {
+        fun validate(osPath: OsPath): OsPath {
+            osPath.pathParts.forEach { part->
+                val invalidChar = part.find { forbiddenCharacters.contains(it) }
+                if (invalidChar != null) {
+                    throw IllegalArgumentException("Invalid character '$invalidChar' in path part '$part'")
+                }
+            }
+
+            return osPath
+        }
+
+        fun normalize(osPath: OsPath): OsPath {
+            return normalize(osPath.osType, osPath.root, osPath.pathParts)
+        }
+
+        fun normalize(osPathOsType: OsType<*>, osPathRoot: String, osPathPathParts: List<String>): OsPath {
             //Relative:
             // ./../ --> ../
             // ./a/../ --> ./
@@ -104,17 +112,16 @@ data class OsPath private constructor(val osType: OsType<*>, val root: String, v
             // /../ --> invalid (above root)
             // /a/../ --> /
 
-            val isAbsolute: Boolean = root.isNotEmpty()
-
             val newParts = mutableListOf<String>()
             var index = 0
+            val isAbsolute = osPathRoot.isNotEmpty()
 
-            while (index < pathParts.size) {
-                if (pathParts[index] == ".") {
+            while (index <osPathPathParts.size) {
+                if (osPathPathParts[index] == ".") {
                     //Just skip . without adding it to newParts
-                } else if (pathParts[index] == "..") {
+                } else if (osPathPathParts[index] == "..") {
                     if (isAbsolute && newParts.size == 0) {
-                        throw IllegalArgumentException("Path after normalization goes beyond root element: '$root'")
+                        throw IllegalArgumentException("Path after normalization goes beyond root element: '${osPathRoot}'")
                     }
 
                     if (newParts.size > 0) {
@@ -137,13 +144,13 @@ data class OsPath private constructor(val osType: OsType<*>, val root: String, v
                         newParts.add("..")
                     }
                 } else {
-                    newParts.add(pathParts[index])
+                    newParts.add(osPathPathParts[index])
                 }
 
                 index += 1
             }
 
-            return newParts
+            return OsPath(osPathOsType,osPathRoot, newParts)
         }
     }
 }
