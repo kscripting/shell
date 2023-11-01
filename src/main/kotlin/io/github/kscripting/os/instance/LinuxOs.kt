@@ -8,5 +8,5 @@ class LinuxOs(userHome: String) : Os {
     override val osTypePrefix: String = "linux"
     override val type: OsType<LinuxOs> = OsType.LINUX
     override val pathSeparator: String get() = "/"
-    override val userHome: OsPath = OsPath(OsType.LINUX, userHome).getOrThrow()
+    override val userHome: OsPath = OsPath(OsType.LINUX, userHome)
 }

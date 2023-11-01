@@ -1,5 +1,7 @@
 package io.github.kscripting.shell.integration
 
+import io.github.kscripting.os.instance.WindowsOs
+import io.github.kscripting.os.model.OsType
 import io.github.kscripting.os.model.readText
 import io.github.kscripting.os.model.resolve
 import io.github.kscripting.shell.integration.tools.ShellTestBase
@@ -7,10 +9,20 @@ import io.github.kscripting.shell.integration.tools.TestContext
 import io.github.kscripting.shell.integration.tools.TestContext.execPath
 import io.github.kscripting.shell.integration.tools.TestContext.testPath
 import io.github.kscripting.shell.util.Sanitizer
+import net.igsoft.typeutils.globalcontext.GlobalContext
+import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.TestInstance
 
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class ShellExecutorTest : ShellTestBase {
+
+    @BeforeAll
+    fun setup() {
+
+    }
+
     @Test
     @Tag("posix")
     @Tag("windows")
@@ -27,7 +39,7 @@ class ShellExecutorTest : ShellTestBase {
         verify(
             "doEcho -f $path",
             0,
-            path.readText().getOrThrow(),
+            path.readText(),
             "",
             inputSanitizer = Sanitizer.EMPTY_SANITIZER,
             outputSanitizer = Sanitizer.EMPTY_SANITIZER

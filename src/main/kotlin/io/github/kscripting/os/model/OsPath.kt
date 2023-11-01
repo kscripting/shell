@@ -10,12 +10,11 @@ sealed interface OsPathError {
 data class OsPath private constructor(val osType: OsType<*>, val root: String, val pathParts: List<String>) {
     val isRelative: Boolean get() = root.isEmpty() && pathParts.isNotEmpty()
     val isAbsolute: Boolean get() = root.isNotEmpty()
-    val isEmpty: Boolean get() = root.isEmpty() && pathParts.isEmpty()
 
     val path: String get() = root + pathParts.joinToString(osType.value.pathSeparator) { it }
     val leaf: String get() = if (pathParts.isEmpty()) root else pathParts.last()
 
-    override fun toString(): String = if (isEmpty) "[$osType]" else "$path [$osType]"
+    override fun toString(): String = "$path [$osType]"
 
     companion object {
         //https://stackoverflow.com/questions/1976007/what-characters-are-forbidden-in-windows-and-linux-directory-names
@@ -43,19 +42,24 @@ data class OsPath private constructor(val osType: OsType<*>, val root: String, v
         //1. It doesn't matter if there is '/' or '\' used as path separator - both are treated the same
         //2. Duplicated or trailing slashes '/' and backslashes '\' are just ignored
 
-        operator fun invoke(osType: OsType<*>, root: String, pathParts: List<String>): Result<OsPath> {
-            return Result.success(OsPath(osType, root, pathParts))
+        operator fun invoke(osType: OsType<*>, root: String, pathParts: List<String>): OsPath {
+            //TODO: verify root - do not allow empty paths
+            if (root.isEmpty() && pathParts.isEmpty()) {
+                throw OsPathError.EmptyPath
+            }
+
+            return OsPath(osType, root, pathParts)
         }
 
-        operator fun invoke(vararg pathParts: String): Result<OsPath> {
+        operator fun invoke(vararg pathParts: String): OsPath {
             return invoke(OsType.native, pathParts.toList())
         }
 
-        operator fun invoke(osType: OsType<*>, vararg pathParts: String): Result<OsPath> {
+        operator fun invoke(osType: OsType<*>, vararg pathParts: String): OsPath {
             return invoke(osType, pathParts.toList())
         }
 
-        operator fun invoke(osType: OsType<*>, pathParts: List<String>): Result<OsPath> {
+        operator fun invoke(osType: OsType<*>, pathParts: List<String>): OsPath {
             val path = pathParts.joinToString("/")
 
             //Detect root
@@ -76,22 +80,19 @@ data class OsPath private constructor(val osType: OsType<*>, val root: String, v
 
             //Remove also empty path parts - there were duplicated or trailing slashes / backslashes in initial path
             val pathPartsResolved = path.drop(root.length).split('/', '\\').filter { it.isNotBlank() }
-
-            val normalizedPath = normalize(root, pathPartsResolved).getOrElse {
-                return Result.failure(it)
-            }
+            val normalizedPath = normalize(root, pathPartsResolved)
 
             //Validate root element of path and find out if it is absolute or relative
             val forbiddenCharacter = path.substring(root.length).find { forbiddenCharacters.contains(it) }
 
             if (forbiddenCharacter != null) {
-                return Result.failure(IllegalArgumentException("Invalid character '$forbiddenCharacter' in path '$path'"))
+                throw IllegalArgumentException("Invalid character '$forbiddenCharacter' in path '$path'")
             }
 
-            return Result.success(OsPath(osType, root, normalizedPath))
+            return OsPath(osType, root, normalizedPath)
         }
 
-        fun normalize(root: String, pathParts: List<String>): Result<List<String>> {
+        fun normalize(root: String, pathParts: List<String>): List<String> {
             //Relative:
             // ./../ --> ../
             // ./a/../ --> ./
@@ -113,7 +114,7 @@ data class OsPath private constructor(val osType: OsType<*>, val root: String, v
                     //Just skip . without adding it to newParts
                 } else if (pathParts[index] == "..") {
                     if (isAbsolute && newParts.size == 0) {
-                        return Result.failure(IllegalArgumentException("Path after normalization goes beyond root element: '$root'"))
+                        throw IllegalArgumentException("Path after normalization goes beyond root element: '$root'")
                     }
 
                     if (newParts.size > 0) {
@@ -142,7 +143,7 @@ data class OsPath private constructor(val osType: OsType<*>, val root: String, v
                 index += 1
             }
 
-            return Result.success(newParts)
+            return newParts
         }
     }
 }

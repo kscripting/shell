@@ -1,8 +1,8 @@
 package io.github.kscripting.shell.process
 
-import io.github.kscripting.shell.model.CommandTimeoutException
 import io.github.kscripting.os.model.OsPath
 import io.github.kscripting.os.model.toNativeFile
+import io.github.kscripting.shell.model.CommandTimeoutException
 import io.github.kscripting.shell.util.Sanitizer
 import io.github.kscripting.shell.util.Sanitizer.Companion.EMPTY_SANITIZER
 import java.io.InputStream
@@ -53,7 +53,7 @@ object ProcessRunner {
         try {
             // simplify with https://stackoverflow.com/questions/35421699/how-to-invoke-external-command-from-within-kotlin-code
             val process = ProcessBuilder(command)
-                .directory(workingDirectory?.toNativeFile()?.getOrNull())
+                .directory(workingDirectory?.toNativeFile())
                 .redirectInput(if (inheritInput) ProcessBuilder.Redirect.INHERIT else ProcessBuilder.Redirect.PIPE)
                 .redirectOutput(ProcessBuilder.Redirect.PIPE)
                 .apply {

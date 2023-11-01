@@ -15,10 +15,10 @@ fun <P, R> Result<P>.flatMap(fn: (P) -> Result<R>): Result<R> = fold(
     onFailure = { Result.failure(it) }
 )
 
-fun OsPath.toNative(): Result<OsPath> {
+fun OsPath.toNative(): OsPath {
     if (!osType.isPosixHostedOnWindows()) {
         //Everything besides Cygwin/Msys is native...
-        return Result.success(this)
+        return this
     }
 
     val hostedOs = osType.value as HostedOs
@@ -67,17 +67,14 @@ fun OsPath.toNative(): Result<OsPath> {
     return OsPath(hostedOs.nativeType, newRoot, newParts)
 }
 
-fun Result<OsPath>.toNative(): Result<OsPath> = flatMap { it.toNative() }
-
-
 fun <E> List<E>.startsWith(list: List<E>): Boolean = (this.size >= list.size && this.subList(0, list.size) == list)
 
 fun OsPath.startsWith(osPath: OsPath): Boolean = root == osPath.root && pathParts.startsWith(osPath.pathParts)
 
-fun OsPath.toHosted(targetOs: OsType<*>): Result<OsPath> = runCatching{
+fun OsPath.toHosted(targetOs: OsType<*>): OsPath {
     if (osType == targetOs) {
         //This is already targetOs...
-        return Result.success(this)
+        return this
     }
 
     if (!(targetOs.isPosixHostedOnWindows() && osType == ((targetOs.value) as HostedOs).nativeType)) {
@@ -130,79 +127,51 @@ fun OsPath.toHosted(targetOs: OsType<*>): Result<OsPath> = runCatching{
     return OsPath(targetOs, newRoot, newParts)
 }
 
-fun Result<OsPath>.toHosted(targetOs: OsType<*>): Result<OsPath> = flatMap { it.toHosted(targetOs) }
-
-
-val Result<OsPath>.path: Result<String> get() = map { it.path }
-
 // Conversion to OsPath
-fun File.toOsPath(): Result<OsPath> = OsPath(OsType.native, absolutePath)
+fun File.toOsPath(): OsPath = OsPath(OsType.native, absolutePath)
 
-fun Path.toOsPath(): Result<OsPath> = OsPath(OsType.native, absolutePathString())
+fun Path.toOsPath(): OsPath = OsPath(OsType.native, absolutePathString())
 
-fun URI.toOsPath(): Result<OsPath> =
-    if (this.scheme == "file") File(this).toOsPath() else Result.failure(IllegalArgumentException("Invalid conversion from URL to OsPath"))
+fun URI.toOsPath(): OsPath =
+    if (this.scheme == "file") File(this).toOsPath() else throw IllegalArgumentException("Invalid conversion from URL to OsPath")
 
 
 // Conversion from OsPath
-fun OsPath.toNativePath(): Result<Path> = toNative().path.map { Paths.get(it) }
+fun OsPath.toNativePath(): Path = Paths.get(toNative().path)
 
-fun OsPath.toNativeFile(): Result<File> = toNative().path.map { File(it) }
-fun Result<OsPath>.toNativeFile(): Result<File> = toNative().path.map { File(it) }
+fun OsPath.toNativeFile(): File = File(toNative().path)
 
-fun OsPath.toNativeUri(): Result<URI> = toNative().path.map { File(it).toURI() }
+fun OsPath.toNativeUri(): URI = File(toNative().path).toURI()
 
 
 // OsPath operations
-fun OsPath.exists(): Result<Boolean> = toNativePath().map { it.exists() }
-val Result<OsPath>.exists: Result<Boolean> get() = flatMap { it.exists() }
+fun OsPath.exists(): Boolean = toNativePath().exists()
 
-fun OsPath.createDirectories(): Result<OsPath> = Result.runCatching {
-    return OsPath(nativeType, toNativePath().getOrThrow().createDirectories().pathString)
-}
+fun OsPath.createDirectories(): OsPath = OsPath(nativeType, toNativePath().createDirectories().pathString)
 
-fun Result<OsPath>.createDirectories(): Result<OsPath> = flatMap { it.createDirectories() }
+fun OsPath.copyTo(target: OsPath, overwrite: Boolean = false): OsPath =
+    OsPath(nativeType, toNativePath().copyTo(target.toNativePath(), overwrite).pathString)
 
 
-fun OsPath.copyTo(target: OsPath, overwrite: Boolean = false): Result<OsPath> = Result.run {
-    return OsPath(
-        nativeType,
-        toNativePath().getOrThrow().copyTo(target.toNativePath().getOrThrow(), overwrite).pathString
-    )
-}
+fun OsPath.writeText(text: CharSequence, charset: Charset = Charsets.UTF_8, vararg options: OpenOption): Unit =
+    toNativePath().writeText(text, charset, *options)
 
-fun Result<OsPath>.copyTo(target: OsPath, overwrite: Boolean = false): Result<OsPath> =
-    flatMap { it.copyTo(target, overwrite) }
-
-fun OsPath.writeText(text: CharSequence, charset: Charset = Charsets.UTF_8, vararg options: OpenOption): Result<Unit> =
-    runCatching {
-        toNativePath().getOrThrow().writeText(text, charset, *options)
-    }
-
-fun OsPath.readText(charset: Charset = Charsets.UTF_8): Result<String> = runCatching {
-    toNativePath().getOrThrow().readText(charset)
-}
-
-fun Result<OsPath>.readText(charset: Charset = Charsets.UTF_8): Result<String> = flatMap { it.readText(charset) }
+fun OsPath.readText(charset: Charset = Charsets.UTF_8): String = toNativePath().readText(charset)
 
 
-operator fun OsPath.div(osPath: OsPath): Result<OsPath> = resolve(osPath)
-operator fun Result<OsPath>.div(osPath: OsPath): Result<OsPath> = flatMap { it.div(osPath) }
+operator fun OsPath.div(osPath: OsPath): OsPath = resolve(osPath)
 
-operator fun OsPath.div(path: String): Result<OsPath> = resolve(path)
-operator fun Result<OsPath>.div(path: String): Result<OsPath> = flatMap { it.div(path) }
+operator fun OsPath.div(path: String): OsPath = resolve(path)
 
+fun OsPath.resolve(vararg pathParts: String): OsPath = resolve(OsPath(osType, *pathParts))
 
-fun OsPath.resolve(vararg pathParts: String): Result<OsPath> = resolve(OsPath(osType, *pathParts).getOrThrow())
-fun Result<OsPath>.resolve(vararg pathParts: String): Result<OsPath> = flatMap { it.resolve(*pathParts) }
-
-fun OsPath.resolve(osPath: OsPath): Result<OsPath> {
+fun OsPath.resolve(osPath: OsPath): OsPath {
     if (osType != osPath.osType) {
-        return Result.failure(IllegalArgumentException("Paths from different OS's: '${osType}' path can not be resolved with '${osPath.osType}' path"))
+        throw IllegalArgumentException("Paths from different OS's: '${osType}' path can not be resolved with '${osPath.osType}' path")
     }
 
     if (osPath.isAbsolute) {
-        return Result.failure(IllegalArgumentException("Can not resolve absolute or relative path '${path}' using absolute path '${osPath.path}'"))
+        throw IllegalArgumentException("Can not resolve absolute or relative path '${path}' using absolute path '${osPath.path}'")
     }
 
     val newPathParts = buildList {
@@ -210,25 +179,14 @@ fun OsPath.resolve(osPath: OsPath): Result<OsPath> {
         addAll(osPath.pathParts)
     }
 
-    val normalizedPath = OsPath.normalize(root, newPathParts).getOrElse { return Result.failure(it) }
+    val normalizedPath = OsPath.normalize(root, newPathParts)
     return OsPath(osType, root, normalizedPath)
 }
-
-fun Result<OsPath>.resolve(osPath: OsPath): Result<OsPath> = flatMap { it.resolve(osPath) }
-fun Result<OsPath>.resolve(osPath: Result<OsPath>): Result<OsPath> {
-    val currentPath = this.getOrElse { return Result.failure(it) }
-    val newPath = osPath.getOrElse { return Result.failure(it) }
-    return currentPath.resolve(newPath)
-}
-
 
 // OsPath accessors
 
 //val OsPath.rootOsPath
 //    get() = OsPath.createOrThrow(osType, root)
-
-//val OsPath.parent
-//    get() = toNativePath().parent
 
 val OsPath.nativeType
     get() = if (osType.isPosixHostedOnWindows()) OsType.WINDOWS else osType

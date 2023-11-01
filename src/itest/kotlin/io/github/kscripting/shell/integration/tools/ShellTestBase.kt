@@ -1,8 +1,5 @@
 package io.github.kscripting.shell.integration.tools
 
-import io.github.kscripting.shell.ShellExecutor
-import io.github.kscripting.shell.integration.tools.TestContext.defaultInputSanitizer
-import io.github.kscripting.shell.integration.tools.TestContext.defaultOutputSanitizer
 import io.github.kscripting.shell.model.ProcessResult
 import io.github.kscripting.shell.process.EnvAdjuster
 import io.github.kscripting.shell.util.Sanitizer
