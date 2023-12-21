@@ -11,7 +11,7 @@ data class OsPath private constructor(val osType: OsType<*>, val root: String, v
     val isRelative: Boolean get() = root.isEmpty() && pathParts.isNotEmpty()
     val isAbsolute: Boolean get() = root.isNotEmpty()
 
-    val path: String get() = root + pathParts.joinToString(osType.value.pathSeparator) { it }
+    val path: String get() = root + pathParts.joinToString(osType.os.pathSeparator) { it }
     val leaf: String get() = if (pathParts.isEmpty()) root else pathParts.last()
 
     override fun toString(): String = "$path [$osType]"
@@ -37,10 +37,9 @@ data class OsPath private constructor(val osType: OsType<*>, val root: String, v
         private val windowsDriveRegex =
             "^([a-zA-Z]:(?=[\\\\/])|\\\\\\\\(?:[^*:<>?\\\\/|]+\\\\[^*:<>?\\\\/|]+|\\?\\\\(?:[a-zA-Z]:(?=\\\\)|(?:UNC\\\\)?[^*:<>?\\\\/|]+\\\\[^*:<>?\\\\/|]+)))".toRegex()
 
-
         //Relaxed validation:
         //1. It doesn't matter if there is '/' or '\' used as path separator - both are treated the same
-        //2. Duplicated or trailing slashes '/' and backslashes '\' are just ignored
+        //2. Duplicated or trailing slashes '/' and backslashes '\' are ignored
 
         operator fun invoke(osType: OsType<*>, root: String, pathParts: List<String>): OsPath {
             val newRoot = root.trim()
@@ -53,7 +52,7 @@ data class OsPath private constructor(val osType: OsType<*>, val root: String, v
         }
 
         operator fun invoke(vararg pathParts: String): OsPath {
-            return invoke(OsType.native, pathParts.toList())
+            return invoke(GlobalOsType.native, pathParts.toList())
         }
 
         operator fun invoke(osType: OsType<*>, vararg pathParts: String): OsPath {
@@ -76,9 +75,6 @@ data class OsPath private constructor(val osType: OsType<*>, val root: String, v
                 else -> ""
             }
 
-            //TODO: https://learn.microsoft.com/pl-pl/dotnet/standard/io/file-path-formats
-            // https://regex101.com/r/aU4yZ7/1
-
             //Remove also empty path parts - there were duplicated or trailing slashes / backslashes in initial path
             val pathPartsResolved = path.drop(root.length).split('/', '\\').filter { it.isNotBlank() }
 
@@ -86,6 +82,9 @@ data class OsPath private constructor(val osType: OsType<*>, val root: String, v
         }
 
         fun validate(osPath: OsPath): OsPath {
+            //TODO: https://learn.microsoft.com/pl-pl/dotnet/standard/io/file-path-formats
+            // https://regex101.com/r/aU4yZ7/1
+
             osPath.pathParts.forEach { part->
                 val invalidChar = part.find { forbiddenCharacters.contains(it) }
                 if (invalidChar != null) {
@@ -97,10 +96,6 @@ data class OsPath private constructor(val osType: OsType<*>, val root: String, v
         }
 
         fun normalize(osPath: OsPath): OsPath {
-            return normalize(osPath.osType, osPath.root, osPath.pathParts)
-        }
-
-        fun normalize(osPathOsType: OsType<*>, osPathRoot: String, osPathPathParts: List<String>): OsPath {
             //Relative:
             // ./../ --> ../
             // ./a/../ --> ./
@@ -114,14 +109,13 @@ data class OsPath private constructor(val osType: OsType<*>, val root: String, v
 
             val newParts = mutableListOf<String>()
             var index = 0
-            val isAbsolute = osPathRoot.isNotEmpty()
 
-            while (index <osPathPathParts.size) {
-                if (osPathPathParts[index] == ".") {
+            while (index <osPath.pathParts.size) {
+                if (osPath.pathParts[index] == ".") {
                     //Just skip . without adding it to newParts
-                } else if (osPathPathParts[index] == "..") {
-                    if (isAbsolute && newParts.size == 0) {
-                        throw IllegalArgumentException("Path after normalization goes beyond root element: '${osPathRoot}'")
+                } else if (osPath.pathParts[index] == "..") {
+                    if (osPath.isAbsolute && newParts.size == 0) {
+                        throw IllegalArgumentException("Path after normalization goes beyond root element: '${osPath.root}'")
                     }
 
                     if (newParts.size > 0) {
@@ -144,13 +138,13 @@ data class OsPath private constructor(val osType: OsType<*>, val root: String, v
                         newParts.add("..")
                     }
                 } else {
-                    newParts.add(osPathPathParts[index])
+                    newParts.add(osPath.pathParts[index])
                 }
 
                 index += 1
             }
 
-            return OsPath(osPathOsType,osPathRoot, newParts)
+            return OsPath(osPath.osType,osPath.root, newParts)
         }
     }
 }

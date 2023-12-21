@@ -13,6 +13,11 @@ interface Os {
     // startsWith() covers all cases.
     val osTypePrefix: String
     val type: OsType<out Os>
+
+//    val environment: Map<String, String>
+//    val systemProperties: Map<String, String>
+//    val fileSystem: Fs
+
     val userHome: OsPath
     val pathSeparator: String
 }

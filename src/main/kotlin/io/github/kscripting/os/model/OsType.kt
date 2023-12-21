@@ -2,47 +2,24 @@ package io.github.kscripting.os.model
 
 import io.github.kscripting.os.Os
 import io.github.kscripting.os.instance.*
-import net.igsoft.typeutils.globalcontext.GlobalContext
-import net.igsoft.typeutils.marker.AutoTypedMarker
-import net.igsoft.typeutils.marker.DefaultTypedMarker
 import net.igsoft.typeutils.marker.TypedMarker
-import net.igsoft.typeutils.typedenum.TypedEnumCompanion
-import org.apache.commons.lang3.SystemUtils
 
+//@Suppress("PropertyName")
+//interface OsTypeCompanion {
+//    val LINUX: OsType<LinuxOs>
+//    val WINDOWS: OsType<WindowsOs>
+//    val CYGWIN: OsType<CygwinOs>
+//    val MSYS: OsType<MsysOs>
+//    val MACOS: OsType<MacOs>
+//    val FREEBSD: OsType<FreeBsdOs>
+//
+//    val native: OsType<out Os>
+//}
 
-class OsType<T : Os> private constructor(private val marker: TypedMarker<T>) : DefaultTypedMarker<T>(marker) {
-    val value: T get() = GlobalContext.getValue(marker)
+interface OsType<T : Os> : TypedMarker<T> {
+    val os: T
 
-    fun isPosixLike() =
-        (this == LINUX || this == MACOS || this == FREEBSD || this == CYGWIN || this == MSYS)
-
-    fun isPosixHostedOnWindows() = (this == CYGWIN || this == MSYS)
-    fun isWindowsLike() = (this == WINDOWS)
-
-    companion object : TypedEnumCompanion<OsType<out Os>>() {
-        val LINUX = OsType(AutoTypedMarker.create<LinuxOs>())
-        val WINDOWS = OsType(AutoTypedMarker.create<WindowsOs>())
-        val CYGWIN = OsType(AutoTypedMarker.create<CygwinOs>())
-        val MSYS = OsType(AutoTypedMarker.create<MsysOs>())
-        val MACOS = OsType(AutoTypedMarker.create<MacOs>())
-        val FREEBSD = OsType(AutoTypedMarker.create<FreeBsdOs>())
-
-        val native: OsType<out Os> = guessNativeType()
-
-        fun findByOsTypeString(osTypeString: String): OsType<out Os>? =
-            find { osTypeString.startsWith(it.value.osTypePrefix, true) }
-
-        private fun guessNativeType(): OsType<out Os> {
-            when {
-                SystemUtils.IS_OS_LINUX -> return LINUX
-                SystemUtils.IS_OS_MAC -> return MACOS
-                SystemUtils.IS_OS_WINDOWS -> return WINDOWS
-                SystemUtils.IS_OS_FREE_BSD -> return FREEBSD
-            }
-
-            return LINUX
-        }
-    }
-
-    override fun toString(): String = findName(this)
+    fun isPosixLike(): Boolean
+    fun isPosixHostedOnWindows(): Boolean
+    fun isWindowsLike(): Boolean
 }

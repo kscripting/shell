@@ -16,69 +16,69 @@ import org.junit.jupiter.api.TestInstance
 class WindowsOsPathTest {
     @BeforeAll
     fun beforeAll() {
-        GlobalContext.registerOrReplace(OsType.WINDOWS, WindowsOs("C:\\Users\\Admin\\.kscript"))
+        GlobalContext.registerOrReplace(GlobalOsType.WINDOWS, WindowsOs(GlobalOsType.WINDOWS, "C:\\Users\\Admin\\.kscript"))
     }
 
     @Test
     fun `Test Windows paths`() {
-        assertThat(OsPath(OsType.WINDOWS, "C:\\")).let {
-            it.prop(OsPath::osType).isEqualTo(OsType.WINDOWS)
+        assertThat(OsPath(GlobalOsType.WINDOWS, "C:\\")).let {
+            it.prop(OsPath::osType).isEqualTo(GlobalOsType.WINDOWS)
             it.prop(OsPath::root).isEqualTo("C:\\")
             it.prop(OsPath::pathParts).isEqualTo(emptyList())
         }
 
-        assertThat(OsPath(OsType.WINDOWS, "C:\\home\\admin\\.kscript")).let {
-            it.prop(OsPath::osType).isEqualTo(OsType.WINDOWS)
+        assertThat(OsPath(GlobalOsType.WINDOWS, "C:\\home\\admin\\.kscript")).let {
+            it.prop(OsPath::osType).isEqualTo(GlobalOsType.WINDOWS)
             it.prop(OsPath::root).isEqualTo("C:\\")
             it.prop(OsPath::pathParts).isEqualTo(listOf("home", "admin", ".kscript"))
         }
 
-        assertThat(OsPath(OsType.WINDOWS, "")).let {
-            it.prop(OsPath::osType).isEqualTo(OsType.WINDOWS)
+        assertThat(OsPath(GlobalOsType.WINDOWS, "")).let {
+            it.prop(OsPath::osType).isEqualTo(GlobalOsType.WINDOWS)
             it.prop(OsPath::root).isEqualTo("")
             it.prop(OsPath::pathParts).isEqualTo(emptyList())
         }
 
-        assertThat(OsPath(OsType.WINDOWS, "file.txt")).let {
-            it.prop(OsPath::osType).isEqualTo(OsType.WINDOWS)
+        assertThat(OsPath(GlobalOsType.WINDOWS, "file.txt")).let {
+            it.prop(OsPath::osType).isEqualTo(GlobalOsType.WINDOWS)
             it.prop(OsPath::root).isEqualTo("")
             it.prop(OsPath::pathParts).isEqualTo(listOf("file.txt"))
         }
 
-        assertThat(OsPath(OsType.WINDOWS, ".")).let {
-            it.prop(OsPath::osType).isEqualTo(OsType.WINDOWS)
+        assertThat(OsPath(GlobalOsType.WINDOWS, ".")).let {
+            it.prop(OsPath::osType).isEqualTo(GlobalOsType.WINDOWS)
             it.prop(OsPath::root).isEqualTo("")
             it.prop(OsPath::pathParts).isEqualTo(emptyList())
         }
 
-        assertThat(OsPath(OsType.WINDOWS, ".\\home\\admin\\.kscript")).let {
-            it.prop(OsPath::osType).isEqualTo(OsType.WINDOWS)
+        assertThat(OsPath(GlobalOsType.WINDOWS, ".\\home\\admin\\.kscript")).let {
+            it.prop(OsPath::osType).isEqualTo(GlobalOsType.WINDOWS)
             it.prop(OsPath::root).isEqualTo("")
             it.prop(OsPath::pathParts).isEqualTo(listOf("home", "admin", ".kscript"))
         }
 
-        assertThat(OsPath(OsType.WINDOWS, "..\\home\\admin\\.kscript")).let {
-            it.prop(OsPath::osType).isEqualTo(OsType.WINDOWS)
+        assertThat(OsPath(GlobalOsType.WINDOWS, "..\\home\\admin\\.kscript")).let {
+            it.prop(OsPath::osType).isEqualTo(GlobalOsType.WINDOWS)
             it.prop(OsPath::root).isEqualTo("")
             it.prop(OsPath::pathParts).isEqualTo(listOf("..", "home", "admin", ".kscript"))
         }
 
-        assertThat(OsPath(OsType.WINDOWS, "..")).let {
-            it.prop(OsPath::osType).isEqualTo(OsType.WINDOWS)
+        assertThat(OsPath(GlobalOsType.WINDOWS, "..")).let {
+            it.prop(OsPath::osType).isEqualTo(GlobalOsType.WINDOWS)
             it.prop(OsPath::root).isEqualTo("")
             it.prop(OsPath::pathParts).isEqualTo(listOf(".."))
         }
 
         //Duplicated separators are accepted
-        assertThat(OsPath(OsType.WINDOWS, "C:\\home\\\\\\\\admin\\.kscript\\")).let {
-            it.prop(OsPath::osType).isEqualTo(OsType.WINDOWS)
+        assertThat(OsPath(GlobalOsType.WINDOWS, "C:\\home\\\\\\\\admin\\.kscript\\")).let {
+            it.prop(OsPath::osType).isEqualTo(GlobalOsType.WINDOWS)
             it.prop(OsPath::root).isEqualTo("C:\\")
             it.prop(OsPath::pathParts).isEqualTo(listOf("home", "admin", ".kscript"))
         }
 
         //Both types of separator are accepted
-        assertThat(OsPath(OsType.WINDOWS, "C:/home\\admin/.kscript////")).let {
-            it.prop(OsPath::osType).isEqualTo(OsType.WINDOWS)
+        assertThat(OsPath(GlobalOsType.WINDOWS, "C:/home\\admin/.kscript////")).let {
+            it.prop(OsPath::osType).isEqualTo(GlobalOsType.WINDOWS)
             it.prop(OsPath::root).isEqualTo("C:\\")
             it.prop(OsPath::pathParts).isEqualTo(listOf("home", "admin", ".kscript"))
         }
@@ -86,27 +86,27 @@ class WindowsOsPathTest {
 
     @Test
     fun `Normalization of Windows paths`() {
-        assertThat(OsPath(OsType.WINDOWS, "C:\\home\\admin\\.kscript\\..\\..\\")).let {
-            it.prop(OsPath::osType).isEqualTo(OsType.WINDOWS)
+        assertThat(OsPath(GlobalOsType.WINDOWS, "C:\\home\\admin\\.kscript\\..\\..\\")).let {
+            it.prop(OsPath::osType).isEqualTo(GlobalOsType.WINDOWS)
             it.prop(OsPath::root).isEqualTo("C:\\")
             it.prop(OsPath::pathParts).isEqualTo(listOf("home"))
         }
 
-        assertThat(OsPath(OsType.WINDOWS, ".\\.\\.\\..\\..\\script")).let {
-            it.prop(OsPath::osType).isEqualTo(OsType.WINDOWS)
+        assertThat(OsPath(GlobalOsType.WINDOWS, ".\\.\\.\\..\\..\\script")).let {
+            it.prop(OsPath::osType).isEqualTo(GlobalOsType.WINDOWS)
             it.prop(OsPath::root).isEqualTo("")
             it.prop(OsPath::pathParts).isEqualTo(listOf("..", "..", "script"))
         }
 
-        assertThat(OsPath(OsType.WINDOWS, "C:\\a\\b\\c\\..\\d\\script")).let {
-            it.prop(OsPath::osType).isEqualTo(OsType.WINDOWS)
+        assertThat(OsPath(GlobalOsType.WINDOWS, "C:\\a\\b\\c\\..\\d\\script")).let {
+            it.prop(OsPath::osType).isEqualTo(GlobalOsType.WINDOWS)
             it.prop(OsPath::root).isEqualTo("C:\\")
             it.prop(OsPath::pathParts).isEqualTo(listOf("a", "b", "d", "script"))
         }
 
         assertFailure {
             OsPath(
-                OsType.WINDOWS,
+                GlobalOsType.WINDOWS,
                 "C:\\.kscript\\..\\..\\"
             )
         }.isInstanceOf(IllegalArgumentException::class.java)
@@ -115,11 +115,11 @@ class WindowsOsPathTest {
 
     @Test
     fun `Test invalid Windows paths`() {
-        assertFailure { OsPath(OsType.WINDOWS, "C:\\adas?df") }
+        assertFailure { OsPath(GlobalOsType.WINDOWS, "C:\\adas?df") }
             .isInstanceOf(IllegalArgumentException::class.java)
             .hasMessage("Invalid character '?' in path part 'adas?df'")
 
-        assertFailure { OsPath(OsType.WINDOWS, "home:\\vagrant") }
+        assertFailure { OsPath(GlobalOsType.WINDOWS, "home:\\vagrant") }
             .isInstanceOf(IllegalArgumentException::class.java)
             .hasMessage("Invalid character ':' in path part 'home:'")
     }
@@ -128,17 +128,17 @@ class WindowsOsPathTest {
     fun `Test Windows stringPath`() {
         assertThat(
             OsPath(
-                OsType.WINDOWS,
+                GlobalOsType.WINDOWS,
                 "C:\\home\\admin\\.kscript"
             ).path
         ).isEqualTo("C:\\home\\admin\\.kscript")
         assertThat(
             OsPath(
-                OsType.WINDOWS,
+                GlobalOsType.WINDOWS,
                 "c:\\a\\b\\c\\..\\d\\script"
             ).path
         ).isEqualTo("c:\\a\\b\\d\\script")
-        assertThat(OsPath(OsType.WINDOWS, ".\\.\\.\\..\\..\\script").path).isEqualTo("..\\..\\script")
-        assertThat(OsPath(OsType.WINDOWS, "script\\file.txt").path).isEqualTo("script\\file.txt")
+        assertThat(OsPath(GlobalOsType.WINDOWS, ".\\.\\.\\..\\..\\script").path).isEqualTo("..\\..\\script")
+        assertThat(OsPath(GlobalOsType.WINDOWS, "script\\file.txt").path).isEqualTo("script\\file.txt")
     }
 }

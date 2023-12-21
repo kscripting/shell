@@ -17,69 +17,69 @@ class PosixOsPathTest {
 
     @BeforeAll
     fun beforeAll() {
-        GlobalContext.registerOrReplace(OsType.LINUX, LinuxOs("userhome"))
+        GlobalContext.registerOrReplace(GlobalOsType.LINUX, LinuxOs(GlobalOsType.LINUX, "userhome"))
     }
 
     @Test
     fun `Test Posix paths`() {
-        assertThat(OsPath(OsType.LINUX, "/")).let {
-            it.prop(OsPath::osType).isEqualTo(OsType.LINUX)
+        assertThat(OsPath(GlobalOsType.LINUX, "/")).let {
+            it.prop(OsPath::osType).isEqualTo(GlobalOsType.LINUX)
             it.prop(OsPath::root).isEqualTo("/")
             it.prop(OsPath::pathParts).isEqualTo(emptyList())
         }
 
-        assertThat(OsPath(OsType.LINUX, "/home/admin/.kscript")).let {
-            it.prop(OsPath::osType).isEqualTo(OsType.LINUX)
+        assertThat(OsPath(GlobalOsType.LINUX, "/home/admin/.kscript")).let {
+            it.prop(OsPath::osType).isEqualTo(GlobalOsType.LINUX)
             it.prop(OsPath::root).isEqualTo("/")
             it.prop(OsPath::pathParts).isEqualTo(listOf("home", "admin", ".kscript"))
         }
 
-        assertThat(OsPath(OsType.LINUX, "./home/admin/.kscript")).let {
-            it.prop(OsPath::osType).isEqualTo(OsType.LINUX)
+        assertThat(OsPath(GlobalOsType.LINUX, "./home/admin/.kscript")).let {
+            it.prop(OsPath::osType).isEqualTo(GlobalOsType.LINUX)
             it.prop(OsPath::root).isEqualTo("")
             it.prop(OsPath::pathParts).isEqualTo(listOf("home", "admin", ".kscript"))
         }
 
-        assertThat(OsPath(OsType.LINUX, "")).let {
-            it.prop(OsPath::osType).isEqualTo(OsType.LINUX)
+        assertThat(OsPath(GlobalOsType.LINUX, "")).let {
+            it.prop(OsPath::osType).isEqualTo(GlobalOsType.LINUX)
             it.prop(OsPath::root).isEqualTo("")
             it.prop(OsPath::pathParts).isEqualTo(emptyList())
         }
 
-        assertThat(OsPath(OsType.LINUX, "file.txt")).let {
-            it.prop(OsPath::osType).isEqualTo(OsType.LINUX)
+        assertThat(OsPath(GlobalOsType.LINUX, "file.txt")).let {
+            it.prop(OsPath::osType).isEqualTo(GlobalOsType.LINUX)
             it.prop(OsPath::root).isEqualTo("")
             it.prop(OsPath::pathParts).isEqualTo(listOf("file.txt"))
         }
 
-        assertThat(OsPath(OsType.LINUX, ".")).let {
-            it.prop(OsPath::osType).isEqualTo(OsType.LINUX)
+        assertThat(OsPath(GlobalOsType.LINUX, ".")).let {
+            it.prop(OsPath::osType).isEqualTo(GlobalOsType.LINUX)
             it.prop(OsPath::root).isEqualTo("")
             it.prop(OsPath::pathParts).isEqualTo(emptyList())
         }
 
-        assertThat(OsPath(OsType.LINUX, "../home/admin/.kscript")).let {
-            it.prop(OsPath::osType).isEqualTo(OsType.LINUX)
+        assertThat(OsPath(GlobalOsType.LINUX, "../home/admin/.kscript")).let {
+            it.prop(OsPath::osType).isEqualTo(GlobalOsType.LINUX)
             it.prop(OsPath::root).isEqualTo("")
             it.prop(OsPath::pathParts).isEqualTo(listOf("..", "home", "admin", ".kscript"))
         }
 
-        assertThat(OsPath(OsType.LINUX, "..")).let {
-            it.prop(OsPath::osType).isEqualTo(OsType.LINUX)
+        assertThat(OsPath(GlobalOsType.LINUX, "..")).let {
+            it.prop(OsPath::osType).isEqualTo(GlobalOsType.LINUX)
             it.prop(OsPath::root).isEqualTo("")
             it.prop(OsPath::pathParts).isEqualTo(listOf(".."))
         }
 
         //Duplicated separators are accepted
-        assertThat(OsPath(OsType.LINUX, "..//home////admin/.kscript/")).let {
-            it.prop(OsPath::osType).isEqualTo(OsType.LINUX)
+        assertThat(OsPath(GlobalOsType.LINUX, "..//home////admin/.kscript/")).let {
+            it.prop(OsPath::osType).isEqualTo(GlobalOsType.LINUX)
             it.prop(OsPath::root).isEqualTo("")
             it.prop(OsPath::pathParts).isEqualTo(listOf("..", "home", "admin", ".kscript"))
         }
 
         //Both types of separator are accepted
-        assertThat(OsPath(OsType.LINUX, "..//home\\admin\\.kscript/")).let {
-            it.prop(OsPath::osType).isEqualTo(OsType.LINUX)
+        assertThat(OsPath(GlobalOsType.LINUX, "..//home\\admin\\.kscript/")).let {
+            it.prop(OsPath::osType).isEqualTo(GlobalOsType.LINUX)
             it.prop(OsPath::root).isEqualTo("")
             it.prop(OsPath::pathParts).isEqualTo(listOf("..", "home", "admin", ".kscript"))
         }
@@ -87,25 +87,25 @@ class PosixOsPathTest {
 
     @Test
     fun `Normalization of Posix paths`() {
-        assertThat(OsPath(OsType.LINUX, "/home/admin/.kscript/../../")).let {
-            it.prop(OsPath::osType).isEqualTo(OsType.LINUX)
+        assertThat(OsPath(GlobalOsType.LINUX, "/home/admin/.kscript/../../")).let {
+            it.prop(OsPath::osType).isEqualTo(GlobalOsType.LINUX)
             it.prop(OsPath::root).isEqualTo("/")
             it.prop(OsPath::pathParts).isEqualTo(listOf("home"))
         }
 
-        assertThat(OsPath(OsType.LINUX, "./././../../script")).let {
-            it.prop(OsPath::osType).isEqualTo(OsType.LINUX)
+        assertThat(OsPath(GlobalOsType.LINUX, "./././../../script")).let {
+            it.prop(OsPath::osType).isEqualTo(GlobalOsType.LINUX)
             it.prop(OsPath::root).isEqualTo("")
             it.prop(OsPath::pathParts).isEqualTo(listOf("..", "..", "script"))
         }
 
-        assertThat(OsPath(OsType.LINUX, "/a/b/c/../d/script")).let {
-            it.prop(OsPath::osType).isEqualTo(OsType.LINUX)
+        assertThat(OsPath(GlobalOsType.LINUX, "/a/b/c/../d/script")).let {
+            it.prop(OsPath::osType).isEqualTo(GlobalOsType.LINUX)
             it.prop(OsPath::root).isEqualTo("/")
             it.prop(OsPath::pathParts).isEqualTo(listOf("a", "b", "d", "script"))
         }
 
-        assertFailure { OsPath(OsType.LINUX, "/.kscript/../../") }.isInstanceOf(IllegalArgumentException::class)
+        assertFailure { OsPath(GlobalOsType.LINUX, "/.kscript/../../") }.isInstanceOf(IllegalArgumentException::class)
             .hasMessage("Path after normalization goes beyond root element: '/'")
     }
 
@@ -113,7 +113,7 @@ class PosixOsPathTest {
     fun `Test invalid Posix paths`() {
         assertFailure {
             OsPath(
-                OsType.LINUX,
+                GlobalOsType.LINUX,
                 "/ad*asdf"
             )
         }.isInstanceOf(IllegalArgumentException::class.java).hasMessage("Invalid character '*' in path part 'ad*asdf'")
@@ -122,47 +122,47 @@ class PosixOsPathTest {
     @Test
     fun `Test Posix stringPath`() {
         assertThat(
-            OsPath(OsType.LINUX, "/home/admin/.kscript").path
+            OsPath(GlobalOsType.LINUX, "/home/admin/.kscript").path
         ).isEqualTo("/home/admin/.kscript")
-        assertThat(OsPath(OsType.LINUX, "/a/b/c/../d/script").path).isEqualTo("/a/b/d/script")
-        assertThat(OsPath(OsType.LINUX, "./././../../script").path).isEqualTo("../../script")
-        assertThat(OsPath(OsType.LINUX, "script/file.txt").path).isEqualTo("script/file.txt")
+        assertThat(OsPath(GlobalOsType.LINUX, "/a/b/c/../d/script").path).isEqualTo("/a/b/d/script")
+        assertThat(OsPath(GlobalOsType.LINUX, "./././../../script").path).isEqualTo("../../script")
+        assertThat(OsPath(GlobalOsType.LINUX, "script/file.txt").path).isEqualTo("script/file.txt")
     }
 
     @Test
     fun `Test Posix resolve`() {
         assertThat(
-            OsPath(OsType.LINUX, "/").resolve(OsPath(OsType.LINUX, "./.kscript/"))
+            OsPath(GlobalOsType.LINUX, "/").resolve(OsPath(GlobalOsType.LINUX, "./.kscript/"))
                 .path
         ).isEqualTo("/.kscript")
 
         assertThat(
-            OsPath(OsType.LINUX, "/home/admin/").resolve(OsPath(OsType.LINUX, "./.kscript/")).path
+            OsPath(GlobalOsType.LINUX, "/home/admin/").resolve(OsPath(GlobalOsType.LINUX, "./.kscript/")).path
         ).isEqualTo("/home/admin/.kscript")
 
         assertThat(
-            OsPath(OsType.LINUX, "./home/admin/").resolve(OsPath(OsType.LINUX, "./.kscript/")).path
+            OsPath(GlobalOsType.LINUX, "./home/admin/").resolve(OsPath(GlobalOsType.LINUX, "./.kscript/")).path
         ).isEqualTo("home/admin/.kscript")
 
         assertThat(
-            OsPath(OsType.LINUX, "../home/admin/").resolve(OsPath(OsType.LINUX, "./.kscript/")).path
+            OsPath(GlobalOsType.LINUX, "../home/admin/").resolve(OsPath(GlobalOsType.LINUX, "./.kscript/")).path
         ).isEqualTo("../home/admin/.kscript")
 
         assertThat(
-            OsPath(OsType.LINUX, "..").resolve(OsPath(OsType.LINUX, "./.kscript/")).path
+            OsPath(GlobalOsType.LINUX, "..").resolve(OsPath(GlobalOsType.LINUX, "./.kscript/")).path
         ).isEqualTo("../.kscript")
 
         assertThat(
-            OsPath(OsType.LINUX, ".").resolve(OsPath(OsType.LINUX, "./.kscript/")).path
+            OsPath(GlobalOsType.LINUX, ".").resolve(OsPath(GlobalOsType.LINUX, "./.kscript/")).path
         ).isEqualTo(".kscript")
 
         assertFailure {
-            OsPath(OsType.LINUX, "./home/admin").resolve(OsPath(OsType.WINDOWS, ".\\run"))
+            OsPath(GlobalOsType.LINUX, "./home/admin").resolve(OsPath(GlobalOsType.WINDOWS, ".\\run"))
         }.isInstanceOf(IllegalArgumentException::class.java)
             .hasMessage("Paths from different OS's: 'LINUX' path can not be resolved with 'WINDOWS' path")
 
         assertFailure {
-            OsPath(OsType.LINUX, "./home/admin").resolve(OsPath(OsType.LINUX, "/run"))
+            OsPath(GlobalOsType.LINUX, "./home/admin").resolve(OsPath(GlobalOsType.LINUX, "/run"))
         }.isInstanceOf(IllegalArgumentException::class.java)
             .hasMessage("Can not resolve absolute or relative path 'home/admin' using absolute path '/run'")
     }

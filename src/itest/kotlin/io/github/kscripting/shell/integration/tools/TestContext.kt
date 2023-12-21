@@ -1,7 +1,6 @@
 package io.github.kscripting.shell.integration.tools
 
 import io.github.kscripting.os.Os
-import io.github.kscripting.os.instance.LinuxOs
 import io.github.kscripting.os.instance.WindowsOs
 import io.github.kscripting.os.model.*
 import io.github.kscripting.shell.ShellExecutor
@@ -11,12 +10,12 @@ import net.igsoft.typeutils.globalcontext.GlobalContext
 @Suppress("MemberVisibilityCanBePrivate")
 object TestContext {
     init {
-        GlobalContext.registerOrReplace(OsType.WINDOWS, WindowsOs("/home/admin"))
+        GlobalContext.registerOrReplace(GlobalOsType.WINDOWS, WindowsOs(GlobalOsType.WINDOWS, "/home/admin"))
     }
 
-    val osType: OsType<out Os> = OsType.find(System.getProperty("osType")) ?: OsType.native
+    val osType: OsType<out Os> = GlobalOsType.find(System.getProperty("osType")) ?: GlobalOsType.native
 
-    val projectPath: OsPath = OsPath(OsType.native, System.getProperty("projectPath")).toHosted(osType)
+    val projectPath: OsPath = OsPath(GlobalOsType.native, System.getProperty("projectPath")).toHosted(osType)
     val execPath: OsPath = projectPath.resolve("build/shell_test/bin")
     val testPath: OsPath = projectPath.resolve("build/shell_test/tmp")
 
@@ -36,7 +35,7 @@ object TestContext {
 
     init {
         println("osType         : $osType")
-        println("nativeType     : ${OsType.native}")
+        println("nativeType     : ${GlobalOsType.native}")
         println("projectDir     : $projectPath")
         println("execDir        : ${execPath.toHosted(osType)}")
         println("Kotlin version : ${ShellExecutor.evalAndGobble("kotlin -version", osType).stdout}")

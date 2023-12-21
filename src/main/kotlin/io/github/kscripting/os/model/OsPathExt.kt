@@ -9,26 +9,20 @@ import java.nio.file.Path
 import java.nio.file.Paths
 import kotlin.io.path.*
 
-//Wrappers
-fun <P, R> Result<P>.flatMap(fn: (P) -> Result<R>): Result<R> = fold(
-    onSuccess = { fn(it) },
-    onFailure = { Result.failure(it) }
-)
-
 fun OsPath.toNative(): OsPath {
     if (!osType.isPosixHostedOnWindows()) {
         //Everything besides Cygwin/Msys is native...
         return this
     }
 
-    val hostedOs = osType.value as HostedOs
+    val hostedOs = osType.os as HostedOs
 
     val newParts = mutableListOf<String>()
     var newRoot = ""
 
     if (isAbsolute) {
         when (osType) {
-            OsType.CYGWIN -> {
+            GlobalOsType.CYGWIN -> {
                 if (pathParts[0].equals("cygdrive", true)) { //Paths referring /cygdrive
                     newRoot = pathParts[1] + ":\\"
                     newParts.addAll(pathParts.subList(2, pathParts.size))
@@ -44,7 +38,7 @@ fun OsPath.toNative(): OsPath {
                 }
             }
 
-            OsType.MSYS -> {
+            GlobalOsType.MSYS -> {
                 if (pathParts[0].length == 1 && (pathParts[0][0].code in 65..90 || pathParts[0][0].code in 97..122)) { //Paths referring with drive letter at the beginning
                     newRoot = pathParts[0] + ":\\"
                     newParts.addAll(pathParts.subList(1, pathParts.size))
@@ -77,7 +71,7 @@ fun OsPath.toHosted(targetOs: OsType<*>): OsPath {
         return this
     }
 
-    if (!(targetOs.isPosixHostedOnWindows() && osType == ((targetOs.value) as HostedOs).nativeType)) {
+    if (!(targetOs.isPosixHostedOnWindows() && osType == ((targetOs.os) as HostedOs).nativeType)) {
         throw OsPathError.InvalidConversion("You can convert only paths to hosted OS-es")
     }
 
@@ -85,7 +79,7 @@ fun OsPath.toHosted(targetOs: OsType<*>): OsPath {
     var newRoot = ""
 
     if (isAbsolute) {
-        val hostedOs = targetOs.value as HostedOs
+        val hostedOs = targetOs.os as HostedOs
 
         if (this.startsWith(hostedOs.nativeFileSystemRoot)) {
             if (pathParts.subList(hostedOs.nativeFileSystemRoot.pathParts.size, pathParts.size)
@@ -111,7 +105,7 @@ fun OsPath.toHosted(targetOs: OsType<*>): OsPath {
 
             newRoot = "/"
 
-            if (targetOs.value.type == OsType.CYGWIN) {
+            if (targetOs.os.type == GlobalOsType.CYGWIN) {
                 newParts.add("cygdrive")
                 newParts.add(drive)
             } else {
@@ -128,9 +122,9 @@ fun OsPath.toHosted(targetOs: OsType<*>): OsPath {
 }
 
 // Conversion to OsPath
-fun File.toOsPath(): OsPath = OsPath(OsType.native, absolutePath)
+fun File.toOsPath(): OsPath = OsPath(GlobalOsType.native, absolutePath)
 
-fun Path.toOsPath(): OsPath = OsPath(OsType.native, absolutePathString())
+fun Path.toOsPath(): OsPath = OsPath(GlobalOsType.native, absolutePathString())
 
 fun URI.toOsPath(): OsPath =
     if (this.scheme == "file") File(this).toOsPath() else throw IllegalArgumentException("Invalid conversion from URL to OsPath")
@@ -179,7 +173,7 @@ fun OsPath.resolve(osPath: OsPath): OsPath {
         addAll(osPath.pathParts)
     }
 
-    return OsPath.normalize(osType, root, newPathParts)
+    return OsPath.normalize(OsPath(osType, root, newPathParts))
 }
 
 // OsPath accessors
@@ -188,7 +182,7 @@ fun OsPath.resolve(osPath: OsPath): OsPath {
 //    get() = OsPath.createOrThrow(osType, root)
 
 val OsPath.nativeType
-    get() = if (osType.isPosixHostedOnWindows()) OsType.WINDOWS else osType
+    get() = if (osType.isPosixHostedOnWindows()) GlobalOsType.WINDOWS else osType
 
 val OsPath.extension
     get() = leaf.substringAfterLast('.', "")

@@ -16,75 +16,84 @@ class HostedOsPathTest {
     @BeforeAll
     fun beforeAll() {
         //Installation cygwin/msys base path: cygpath -w /, cygpath ~
-        GlobalContext.registerOrReplace(OsType.CYGWIN, CygwinOs("/home/admin", "C:\\Programs\\Cygwin\\"))
-        GlobalContext.registerOrReplace(OsType.MSYS, MsysOs("/home/admin", "C:\\Programs\\Msys\\"))
-        GlobalContext.registerOrReplace(OsType.WINDOWS, WindowsOs("C:\\Users\\Admin\\.kscript"))
+        GlobalContext.registerOrReplace(
+            GlobalOsType.CYGWIN,
+            CygwinOs(GlobalOsType.CYGWIN, GlobalOsType.WINDOWS, "/home/admin", "C:\\Programs\\Cygwin\\")
+        )
+        GlobalContext.registerOrReplace(
+            GlobalOsType.MSYS,
+            MsysOs(GlobalOsType.MSYS, GlobalOsType.WINDOWS, "/home/admin", "C:\\Programs\\Msys\\")
+        )
+        GlobalContext.registerOrReplace(
+            GlobalOsType.WINDOWS,
+            WindowsOs(GlobalOsType.WINDOWS, "C:\\Users\\Admin\\.kscript")
+        )
     }
 
     @Test
     fun `Test Cygwin to Windows`() {
         assertThat(
             OsPath(
-                OsType.CYGWIN, "/cygdrive/c/home/admin/.kscript"
+                GlobalOsType.CYGWIN, "/cygdrive/c/home/admin/.kscript"
             ).toNative().path
         ).isEqualTo("c:\\home\\admin\\.kscript")
 
         assertThat(
             OsPath(
-                OsType.CYGWIN, "~/.kscript"
+                GlobalOsType.CYGWIN, "~/.kscript"
             ).toNative().path
         ).isEqualTo("C:\\Programs\\Cygwin\\home\\admin\\.kscript")
 
         assertThat(
             OsPath(
-                OsType.CYGWIN, "/usr/local/bin/sdk"
+                GlobalOsType.CYGWIN, "/usr/local/bin/sdk"
             ).toNative().path
         ).isEqualTo("C:\\Programs\\Cygwin\\usr\\local\\bin\\sdk")
 
         assertThat(
-            OsPath(OsType.CYGWIN, "../home/admin/.kscript").toNative().path
+            OsPath(GlobalOsType.CYGWIN, "../home/admin/.kscript").toNative().path
         ).isEqualTo("..\\home\\admin\\.kscript")
     }
 
     @Test
     fun `Test Windows to Cygwin`() {
         assertThat(
-            OsPath(OsType.WINDOWS, "C:\\home\\admin\\.kscript").toHosted(OsType.CYGWIN).path
+            OsPath(GlobalOsType.WINDOWS, "C:\\home\\admin\\.kscript").toHosted(GlobalOsType.CYGWIN).path
         ).isEqualTo("/cygdrive/c/home/admin/.kscript")
 
         assertThat(
-            OsPath(OsType.WINDOWS, "..\\home\\admin\\.kscript").toHosted(OsType.CYGWIN).path
+            OsPath(GlobalOsType.WINDOWS, "..\\home\\admin\\.kscript").toHosted(GlobalOsType.CYGWIN).path
         ).isEqualTo("../home/admin/.kscript")
 
         assertThat(
             OsPath(
-                OsType.WINDOWS, "C:\\Programs\\Cygwin\\home\\admin\\.kscript"
-            ).toHosted(OsType.CYGWIN).path
+                GlobalOsType.WINDOWS, "C:\\Programs\\Cygwin\\home\\admin\\.kscript"
+            ).toHosted(GlobalOsType.CYGWIN).path
         ).isEqualTo("~/.kscript")
 
         assertThat(
             OsPath(
-                OsType.WINDOWS, "C:\\Programs\\Cygwin\\usr\\local\\sdk"
-            ).toHosted(OsType.CYGWIN).path
+                GlobalOsType.WINDOWS, "C:\\Programs\\Cygwin\\usr\\local\\sdk"
+            ).toHosted(GlobalOsType.CYGWIN).path
         ).isEqualTo("/usr/local/sdk")
     }
 
     @Test
     fun `Test MSys to Windows`() {
         assertThat(
-            OsPath(OsType.MSYS, "/c/home/admin/.kscript").toNative().path
+            OsPath(GlobalOsType.MSYS, "/c/home/admin/.kscript").toNative().path
         ).isEqualTo("c:\\home\\admin\\.kscript")
 
         assertThat(
-            OsPath(OsType.MSYS, "~/.kscript").toNative().path
+            OsPath(GlobalOsType.MSYS, "~/.kscript").toNative().path
         ).isEqualTo("C:\\Programs\\Msys\\home\\admin\\.kscript")
 
         assertThat(
-            OsPath(OsType.MSYS, "/usr/local/bin/sdk").toNative().path
+            OsPath(GlobalOsType.MSYS, "/usr/local/bin/sdk").toNative().path
         ).isEqualTo("C:\\Programs\\Msys\\usr\\local\\bin\\sdk")
 
         assertThat(
-            OsPath(OsType.MSYS, "../home/admin/.kscript").toNative().path
+            OsPath(GlobalOsType.MSYS, "../home/admin/.kscript").toNative().path
         ).isEqualTo("..\\home\\admin\\.kscript")
     }
 
@@ -92,24 +101,24 @@ class HostedOsPathTest {
     fun `Test Windows to MSys`() {
         assertThat(
             OsPath(
-                OsType.WINDOWS, "C:\\home\\admin\\.kscript"
-            ).toHosted(OsType.MSYS).path
+                GlobalOsType.WINDOWS, "C:\\home\\admin\\.kscript"
+            ).toHosted(GlobalOsType.MSYS).path
         ).isEqualTo("/c/home/admin/.kscript")
 
         assertThat(
             OsPath(
-                OsType.WINDOWS, "..\\home\\admin\\.kscript"
-            ).toHosted(OsType.MSYS).path
+                GlobalOsType.WINDOWS, "..\\home\\admin\\.kscript"
+            ).toHosted(GlobalOsType.MSYS).path
         ).isEqualTo("../home/admin/.kscript")
 
         assertThat(
             OsPath(
-                OsType.WINDOWS, "C:\\Programs\\Msys\\home\\admin\\.kscript"
-            ).toHosted(OsType.MSYS).path
+                GlobalOsType.WINDOWS, "C:\\Programs\\Msys\\home\\admin\\.kscript"
+            ).toHosted(GlobalOsType.MSYS).path
         ).isEqualTo("~/.kscript")
 
         assertThat(
-            OsPath(OsType.WINDOWS, "C:\\Programs\\Msys\\usr\\local\\sdk").toHosted(OsType.MSYS).path
+            OsPath(GlobalOsType.WINDOWS, "C:\\Programs\\Msys\\usr\\local\\sdk").toHosted(GlobalOsType.MSYS).path
         ).isEqualTo("/usr/local/sdk")
     }
 }

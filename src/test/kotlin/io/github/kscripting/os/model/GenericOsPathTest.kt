@@ -12,8 +12,8 @@ class GenericOsPathTest {
     private var simplePath: OsPath
 
     init {
-        GlobalContext.registerOrReplace(OsType.LINUX, LinuxOs("/home/admin"))
-        simplePath = OsPath(OsType.LINUX, "", listOf("home", "admin"))
+        GlobalContext.registerOrReplace(GlobalOsType.LINUX, LinuxOs(GlobalOsType.LINUX, "/home/admin"))
+        simplePath = OsPath(GlobalOsType.LINUX, "", listOf("home", "admin"))
     }
 
     @Test
