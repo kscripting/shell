@@ -2,7 +2,7 @@ package io.github.kscripting.os.instance
 
 import io.github.kscripting.os.OsTypeNew
 import io.github.kscripting.os.Vfs
-import io.github.kscripting.os.createFinalPath
+import io.github.kscripting.os.util.createFinalPath
 import io.github.kscripting.os.model.OsPath
 
 class WindowsVfs(userHome: String) : Vfs {

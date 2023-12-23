@@ -32,23 +32,23 @@ class HostedOsPathTest {
             cygwinVfs.createOsPath("../home/admin/.kscript").toNative().path
         ).isEqualTo("..\\home\\admin\\.kscript")
     }
-/*
+
     @Test
     fun `Test Windows to Cygwin`() {
         assertThat(
-            OsPath(windowsVfs, "C:\\home\\admin\\.kscript").toHosted(cygwinVfs).path
+            cygwinVfs.toHosted(windowsVfs.createOsPath("C:\\home\\admin\\.kscript")).path
         ).isEqualTo("/cygdrive/c/home/admin/.kscript")
 
         assertThat(
-            OsPath(windowsVfs, "..\\home\\admin\\.kscript").toHosted(cygwinVfs).path
+            cygwinVfs.toHosted(windowsVfs.createOsPath("..\\home\\admin\\.kscript")).path
         ).isEqualTo("../home/admin/.kscript")
 
         assertThat(
-            OsPath(windowsVfs, "C:\\Programs\\Cygwin\\home\\admin\\.kscript").toHosted(cygwinVfs).path
+            cygwinVfs.toHosted(windowsVfs.createOsPath("C:\\Programs\\Cygwin\\home\\admin\\.kscript")).path
         ).isEqualTo("~/.kscript")
 
         assertThat(
-            OsPath(windowsVfs, "C:\\Programs\\Cygwin\\usr\\local\\sdk").toHosted(cygwinVfs).path
+            cygwinVfs.toHosted(windowsVfs.createOsPath("C:\\Programs\\Cygwin\\usr\\local\\sdk")).path
         ).isEqualTo("/usr/local/sdk")
     }
 
@@ -74,21 +74,19 @@ class HostedOsPathTest {
     @Test
     fun `Test Windows to MSys`() {
         assertThat(
-            OsPath(windowsVfs, "C:\\home\\admin\\.kscript").toHosted(msysVfs).path
+            msysVfs.toHosted(windowsVfs.createOsPath("C:\\home\\admin\\.kscript")).path
         ).isEqualTo("/c/home/admin/.kscript")
 
         assertThat(
-            OsPath(windowsVfs, "..\\home\\admin\\.kscript").toHosted(msysVfs).path
+            msysVfs.toHosted(windowsVfs.createOsPath("..\\home\\admin\\.kscript")).path
         ).isEqualTo("../home/admin/.kscript")
 
         assertThat(
-            OsPath(windowsVfs, "C:\\Programs\\Msys\\home\\admin\\.kscript").toHosted(msysVfs).path
+            msysVfs.toHosted(windowsVfs.createOsPath("C:\\Programs\\Msys\\home\\admin\\.kscript")).path
         ).isEqualTo("~/.kscript")
 
         assertThat(
-            OsPath(windowsVfs, "C:\\Programs\\Msys\\usr\\local\\sdk").toHosted(msysVfs).path
+            msysVfs.toHosted(windowsVfs.createOsPath("C:\\Programs\\Msys\\usr\\local\\sdk")).path
         ).isEqualTo("/usr/local/sdk")
     }
-
- */
 }

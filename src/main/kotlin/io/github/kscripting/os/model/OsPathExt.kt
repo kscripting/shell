@@ -21,68 +21,11 @@ import java.nio.file.Paths
 //
 fun <T: Vfs> OsPath<T>.toNative(): OsPath<*> = (vfs as? HostedVfs)?.toNative(this) ?: this
 
-/*
+
 fun <E> List<E>.startsWith(list: List<E>): Boolean = (this.size >= list.size && this.subList(0, list.size) == list)
 
 fun <T : Vfs> OsPath<T>.startsWith(osPath: OsPath<T>): Boolean = root == osPath.root && pathParts.startsWith(osPath.pathParts)
 
-
-fun <T : Vfs> OsPath<T>.toHosted(targetOs: OsType<*>): OsPath<T> {
-    if (osType == targetOs) {
-        //This is already targetOs...
-        return this
-    }
-
-    if (!(targetOs.isPosixHostedOnWindows() && osType == ((targetOs.os) as HostedOs).nativeType)) {
-        throw OsPathError.InvalidConversion("You can convert only paths to hosted OS-es")
-    }
-
-    val newParts = mutableListOf<String>()
-    var newRoot = ""
-
-    if (isAbsolute) {
-        val hostedOs = targetOs.os as HostedOs
-
-        if (this.startsWith(hostedOs.nativeFileSystemRoot)) {
-            if (pathParts.subList(hostedOs.nativeFileSystemRoot.pathParts.size, pathParts.size)
-                    .startsWith(hostedOs.userHome.pathParts)
-            ) {
-                //It is user home: ~
-                newRoot = "~/"
-                newParts.addAll(
-                    pathParts.subList(
-                        hostedOs.nativeFileSystemRoot.pathParts.size + hostedOs.userHome.pathParts.size,
-                        pathParts.size
-                    )
-                )
-            } else {
-                //It is hostedOs root: /
-                newRoot = "/"
-                newParts.addAll(pathParts.subList(hostedOs.nativeFileSystemRoot.pathParts.size, pathParts.size))
-            }
-        } else {
-            //Otherwise:
-            //root is like 'C:\'
-            val drive = root.dropLast(2).lowercase()
-
-            newRoot = "/"
-
-            if (targetOs.os.type == GlobalOsType.CYGWIN) {
-                newParts.add("cygdrive")
-                newParts.add(drive)
-            } else {
-                newParts.add(drive)
-            }
-
-            newParts.addAll(pathParts)
-        }
-    } else {
-        newParts.addAll(pathParts)
-    }
-
-    return OsPath(targetOs, newRoot, newParts)
-}
-*/
 
 //// Conversion to OsPath
 //fun File.toOsPath(): OsPath = OsPath(GlobalOsType.native, absolutePath)

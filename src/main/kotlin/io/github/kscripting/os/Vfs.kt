@@ -76,26 +76,3 @@ interface Vfs {
     }
 }
 
-fun <T : Vfs> createPosixOsPath(vfs: T, path: String): OsPath<T> {
-    require(vfs.isValid(path))
-
-    //Detect root
-    val root: String = when {
-        path.startsWith("~/") || path.startsWith("~\\") -> "~"
-        path.startsWith("/") -> "/"
-        else -> ""
-    }
-
-    return createFinalPath(vfs, path, root)
-}
-
-fun <T : Vfs> createFinalPath(vfs: T, path: String, root: String): OsPath<T> {
-    //Remove also empty path parts - there were duplicated or trailing slashes / backslashes in initial path
-    val pathWithoutRoot = path.drop(root.length)
-
-    require(vfs.isValid(pathWithoutRoot))
-
-    val pathPartsResolved = pathWithoutRoot.split('/', '\\').filter { it.isNotBlank() }
-    return vfs.normalize(OsPath(vfs, root, pathPartsResolved))
-}
-
