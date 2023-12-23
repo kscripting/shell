@@ -19,7 +19,7 @@ import java.nio.file.Paths
 //import java.nio.file.Paths
 //import kotlin.io.path.*
 //
-fun <T: Vfs> OsPath<T>.toNative(): OsPath<*> = vfs.toNative(this)
+fun <T: Vfs> OsPath<T>.toNative(): OsPath<*> = (vfs as? HostedVfs)?.toNative(this) ?: this
 
 /*
 fun <E> List<E>.startsWith(list: List<E>): Boolean = (this.size >= list.size && this.subList(0, list.size) == list)

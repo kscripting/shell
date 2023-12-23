@@ -74,9 +74,6 @@ interface Vfs {
 
         return OsPath(osPath.vfs, osPath.root, newParts)
     }
-
-    fun toNative(osPath: OsPath<out Vfs>): OsPath<out Vfs> = osPath
-    fun toHosted(osPath: OsPath<out Vfs>): OsPath<out Vfs> = osPath
 }
 
 fun <T : Vfs> createPosixOsPath(vfs: T, path: String): OsPath<T> {
