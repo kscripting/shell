@@ -1,15 +1,8 @@
 package io.github.kscripting.os.instance
 
-import io.github.kscripting.os.model.OsPath
-import io.github.kscripting.os.model.OsType
+import io.github.kscripting.os.OsTypeNew
 
-class MsysOs(
-    override val type: OsType<MsysOs>,
-    override val nativeType: OsType<WindowsOs>,
-    userHome: String,
-    nativeFileSystemRoot: String
-) : HostedOs {
+class MsysOs(override val nativeOs: WindowsOs, override val vfs: MsysVfs) : HostedOs {
+    override val type: OsTypeNew = OsTypeNew.MSYS
     override val osTypePrefix: String = "msys"
-    override val userHome: OsPath = OsPath(type, userHome)
-    override val nativeFileSystemRoot: OsPath = OsPath(nativeType, nativeFileSystemRoot)
 }

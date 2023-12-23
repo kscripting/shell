@@ -17,7 +17,7 @@ object ProcessRunner {
 
     fun runProcess(
         vararg command: String,
-        workingDirectory: OsPath? = null,
+        workingDirectory: OsPath<*>? = null,
         envAdjuster: EnvAdjuster = {},
         waitTimeMinutes: Int = 10,
         inheritInput: Boolean = false,
@@ -41,7 +41,7 @@ object ProcessRunner {
 
     fun runProcess(
         command: List<String>,
-        workingDirectory: OsPath? = null,
+        workingDirectory: OsPath<*>? = null,
         envAdjuster: EnvAdjuster = {},
         waitTimeMinutes: Int = 10,
         inheritInput: Boolean = false,

@@ -1,12 +1,9 @@
 package io.github.kscripting.os.instance
 
 import io.github.kscripting.os.Os
-import io.github.kscripting.os.model.OsPath
-import io.github.kscripting.os.model.OsType
+import io.github.kscripting.os.OsTypeNew
 
-
-class WindowsOs(override val type: OsType<WindowsOs>, userHome: String) : Os {
+class WindowsOs(override val vfs: WindowsVfs) : Os {
+    override val type: OsTypeNew = OsTypeNew.WINDOWS
     override val osTypePrefix: String = "windows"
-    override val pathSeparator: String get() = "\\"
-    override val userHome: OsPath = OsPath(type, userHome)
 }

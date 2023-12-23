@@ -1,7 +1,5 @@
 package io.github.kscripting.shell.integration
 
-import io.github.kscripting.os.model.readText
-import io.github.kscripting.os.model.resolve
 import io.github.kscripting.shell.integration.tools.ShellTestBase
 import io.github.kscripting.shell.integration.tools.TestContext
 import io.github.kscripting.shell.integration.tools.TestContext.execPath
@@ -32,7 +30,6 @@ class ShellExecutorTest : ShellTestBase {
     @Tag("windows")
     fun `Unicode characters output works`() {
         val path = testPath.resolve("unicodeOutput.txt")
-        println(path)
         verify(
             "doEcho -f $path",
             0,

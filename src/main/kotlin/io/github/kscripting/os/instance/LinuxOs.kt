@@ -1,11 +1,9 @@
 package io.github.kscripting.os.instance
 
 import io.github.kscripting.os.Os
-import io.github.kscripting.os.model.OsPath
-import io.github.kscripting.os.model.OsType
+import io.github.kscripting.os.OsTypeNew
 
-class LinuxOs(override val type: OsType<LinuxOs>, userHome: String) : Os {
+class LinuxOs(override val vfs: LinuxVfs) : Os {
+    override val type: OsTypeNew = OsTypeNew.LINUX
     override val osTypePrefix: String = "linux"
-    override val pathSeparator: String get() = "/"
-    override val userHome: OsPath = OsPath(type, userHome)
 }

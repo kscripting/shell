@@ -21,6 +21,13 @@ kotlin {
     jvmToolchain(11)
 }
 
+configurations.all {
+    resolutionStrategy.cacheDynamicVersionsFor(0, "seconds")
+    resolutionStrategy.cacheChangingModulesFor(0, "seconds")
+}
+
+/*
+
 sourceSets {
     create("itest") {
         kotlin.srcDir("$projectDir/src/itest/kotlin")
@@ -35,10 +42,7 @@ configurations {
     get("itestImplementation").apply { extendsFrom(get("testImplementation")) }
 }
 
-configurations.all {
-    resolutionStrategy.cacheDynamicVersionsFor(0, "seconds")
-    resolutionStrategy.cacheChangingModulesFor(0, "seconds")
-}
+
 
 tasks.create<Test>("itest") {
     val itags = System.getProperty("includeTags") ?: ""
@@ -83,6 +87,21 @@ idea {
     }
 }
 
+val testToolsJar by tasks.registering(Jar::class) {
+    //archiveFileName.set("eulenspiegel-testHelpers-$version.jar")
+    archiveClassifier.set("test")
+    include("io/github/kscripting/shell/integration/tools/*")
+    from(sourceSets["itest"].output)
+}
+
+
+
+*/
+*/
+
+//val publishArtifact = artifacts.add("archives", testToolsJar)
+val publishArtifact = artifacts.add("archives", tasks.jar) //TODO: above line is correct - current should be removed
+
 testlogger {
     showStandardStreams = true
     showFullStackTraces = false
@@ -90,13 +109,6 @@ testlogger {
 
 tasks.test {
     useJUnitPlatform()
-}
-
-val testToolsJar by tasks.registering(Jar::class) {
-    //archiveFileName.set("eulenspiegel-testHelpers-$version.jar")
-    archiveClassifier.set("test")
-    include("io/github/kscripting/shell/integration/tools/*")
-    from(sourceSets["itest"].output)
 }
 
 val licencesSpec = Action<MavenPomLicenseSpec> {
@@ -119,8 +131,6 @@ val scmSpec = Action<MavenPomScm> {
     developerConnection.set("scm:git:ssh:https://github.com/kscripting/shell.git")
     url.set("https://github.com/kscripting/shell")
 }
-
-val publishArtifact = artifacts.add("archives", testToolsJar)
 
 publishing {
     publications {

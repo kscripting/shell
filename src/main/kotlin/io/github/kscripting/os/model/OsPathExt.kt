@@ -1,71 +1,33 @@
 package io.github.kscripting.os.model
 
+import io.github.kscripting.os.OsTypeNew
+import io.github.kscripting.os.Vfs
 import io.github.kscripting.os.instance.HostedOs
 import java.io.File
+
+//import io.github.kscripting.os.Vfs
+import io.github.kscripting.os.instance.HostedVfs
 import java.net.URI
-import java.nio.charset.Charset
-import java.nio.file.OpenOption
 import java.nio.file.Path
 import java.nio.file.Paths
-import kotlin.io.path.*
 
-fun OsPath.toNative(): OsPath {
-    if (!osType.isPosixHostedOnWindows()) {
-        //Everything besides Cygwin/Msys is native...
-        return this
-    }
+//import java.io.File
+//import java.net.URI
+//import java.nio.charset.Charset
+//import java.nio.file.OpenOption
+//import java.nio.file.Path
+//import java.nio.file.Paths
+//import kotlin.io.path.*
+//
+fun <T: Vfs> OsPath<T>.toNative(): OsPath<*> = vfs.toNative(this)
 
-    val hostedOs = osType.os as HostedOs
-
-    val newParts = mutableListOf<String>()
-    var newRoot = ""
-
-    if (isAbsolute) {
-        when (osType) {
-            GlobalOsType.CYGWIN -> {
-                if (pathParts[0].equals("cygdrive", true)) { //Paths referring /cygdrive
-                    newRoot = pathParts[1] + ":\\"
-                    newParts.addAll(pathParts.subList(2, pathParts.size))
-                } else if (root == "~") { //Paths starting with ~
-                    newRoot = hostedOs.nativeFileSystemRoot.root
-                    newParts.addAll(hostedOs.nativeFileSystemRoot.pathParts)
-                    newParts.addAll(hostedOs.userHome.pathParts)
-                    newParts.addAll(pathParts)
-                } else { //Any other path like: /usr/bin
-                    newRoot = hostedOs.nativeFileSystemRoot.root
-                    newParts.addAll(hostedOs.nativeFileSystemRoot.pathParts)
-                    newParts.addAll(pathParts)
-                }
-            }
-
-            GlobalOsType.MSYS -> {
-                if (pathParts[0].length == 1 && (pathParts[0][0].code in 65..90 || pathParts[0][0].code in 97..122)) { //Paths referring with drive letter at the beginning
-                    newRoot = pathParts[0] + ":\\"
-                    newParts.addAll(pathParts.subList(1, pathParts.size))
-                } else if (root == "~") { //Paths starting with ~
-                    newRoot = hostedOs.nativeFileSystemRoot.root
-                    newParts.addAll(hostedOs.nativeFileSystemRoot.pathParts)
-                    newParts.addAll(hostedOs.userHome.pathParts)
-                    newParts.addAll(pathParts)
-                } else { //Any other path like: /usr/bin
-                    newRoot = hostedOs.nativeFileSystemRoot.root
-                    newParts.addAll(hostedOs.nativeFileSystemRoot.pathParts)
-                    newParts.addAll(pathParts)
-                }
-            }
-        }
-    } else {
-        newParts.addAll(pathParts)
-    }
-
-    return OsPath(hostedOs.nativeType, newRoot, newParts)
-}
-
+/*
 fun <E> List<E>.startsWith(list: List<E>): Boolean = (this.size >= list.size && this.subList(0, list.size) == list)
 
-fun OsPath.startsWith(osPath: OsPath): Boolean = root == osPath.root && pathParts.startsWith(osPath.pathParts)
+fun <T : Vfs> OsPath<T>.startsWith(osPath: OsPath<T>): Boolean = root == osPath.root && pathParts.startsWith(osPath.pathParts)
 
-fun OsPath.toHosted(targetOs: OsType<*>): OsPath {
+
+fun <T : Vfs> OsPath<T>.toHosted(targetOs: OsType<*>): OsPath<T> {
     if (osType == targetOs) {
         //This is already targetOs...
         return this
@@ -120,46 +82,45 @@ fun OsPath.toHosted(targetOs: OsType<*>): OsPath {
 
     return OsPath(targetOs, newRoot, newParts)
 }
+*/
 
-// Conversion to OsPath
-fun File.toOsPath(): OsPath = OsPath(GlobalOsType.native, absolutePath)
-
-fun Path.toOsPath(): OsPath = OsPath(GlobalOsType.native, absolutePathString())
-
-fun URI.toOsPath(): OsPath =
-    if (this.scheme == "file") File(this).toOsPath() else throw IllegalArgumentException("Invalid conversion from URL to OsPath")
-
-
-// Conversion from OsPath
-fun OsPath.toNativePath(): Path = Paths.get(toNative().path)
-
-fun OsPath.toNativeFile(): File = File(toNative().path)
-
-fun OsPath.toNativeUri(): URI = File(toNative().path).toURI()
+//// Conversion to OsPath
+//fun File.toOsPath(): OsPath = OsPath(GlobalOsType.native, absolutePath)
+//
+//fun Path.toOsPath(): OsPath = OsPath(GlobalOsType.native, absolutePathString())
+//
+//fun URI.toOsPath(): OsPath =
+//    if (this.scheme == "file") File(this).toOsPath() else throw IllegalArgumentException("Invalid conversion from URL to OsPath")
 
 
-// OsPath operations
-fun OsPath.exists(): Boolean = toNativePath().exists()
-
-fun OsPath.createDirectories(): OsPath = OsPath(nativeType, toNativePath().createDirectories().pathString)
-
-fun OsPath.copyTo(target: OsPath, overwrite: Boolean = false): OsPath =
-    OsPath(nativeType, toNativePath().copyTo(target.toNativePath(), overwrite).pathString)
+//// Conversion from OsPath
+fun OsPath<*>.toNativePath(): Path = Paths.get(toNative().path)
+fun OsPath<*>.toNativeFile(): File = File(toNative().path)
+fun OsPath<*>.toNativeUri(): URI = File(toNative().path).toURI()
 
 
-fun OsPath.writeText(text: CharSequence, charset: Charset = Charsets.UTF_8, vararg options: OpenOption): Unit =
-    toNativePath().writeText(text, charset, *options)
+//// OsPath operations
+//fun OsPath.exists(): Boolean = toNativePath().exists()
+//
+//fun OsPath.createDirectories(): OsPath = OsPath(nativeType, toNativePath().createDirectories().pathString)
+//
+//fun OsPath.copyTo(target: OsPath, overwrite: Boolean = false): OsPath =
+//    OsPath(nativeType, toNativePath().copyTo(target.toNativePath(), overwrite).pathString)
+//
+//
+//fun OsPath.writeText(text: CharSequence, charset: Charset = Charsets.UTF_8, vararg options: OpenOption): Unit =
+//    toNativePath().writeText(text, charset, *options)
+//
+//fun OsPath.readText(charset: Charset = Charsets.UTF_8): String = toNativePath().readText(charset)
+//
 
-fun OsPath.readText(charset: Charset = Charsets.UTF_8): String = toNativePath().readText(charset)
+operator fun <T : Vfs> OsPath<T>.div(osPath: OsPath<T>): OsPath<T> = resolve(osPath)
 
+operator fun <T : Vfs> OsPath<T>.div(path: String): OsPath<T> = resolve(path)
 
-operator fun OsPath.div(osPath: OsPath): OsPath = resolve(osPath)
+fun <T : Vfs> OsPath<T>.resolve(vararg pathParts: String): OsPath<T> = resolve(vfs.createOsPath(pathParts.joinToString("/")) as OsPath<T>)
 
-operator fun OsPath.div(path: String): OsPath = resolve(path)
-
-fun OsPath.resolve(vararg pathParts: String): OsPath = resolve(OsPath(osType, *pathParts))
-
-fun OsPath.resolve(osPath: OsPath): OsPath {
+fun <T : Vfs> OsPath<T>.resolve(osPath: OsPath<T>): OsPath<T> {
     if (osType != osPath.osType) {
         throw IllegalArgumentException("Paths from different OS's: '${osType}' path can not be resolved with '${osPath.osType}' path")
     }
@@ -173,16 +134,16 @@ fun OsPath.resolve(osPath: OsPath): OsPath {
         addAll(osPath.pathParts)
     }
 
-    return OsPath.normalize(OsPath(osType, root, newPathParts))
+    return vfs.normalize(vfs.createOsPath(root, newPathParts) as OsPath<T>)
 }
 
-// OsPath accessors
-
-//val OsPath.rootOsPath
-//    get() = OsPath.createOrThrow(osType, root)
-
-val OsPath.nativeType
-    get() = if (osType.isPosixHostedOnWindows()) GlobalOsType.WINDOWS else osType
-
-val OsPath.extension
-    get() = leaf.substringAfterLast('.', "")
+//// OsPath accessors
+//
+////val OsPath.rootOsPath
+////    get() = OsPath.createOrThrow(osType, root)
+//
+//val OsPath.nativeType
+//    get() = if (osType.isPosixHostedOnWindows()) GlobalOsType.WINDOWS else osType
+//
+//val OsPath.extension
+//    get() = leaf.substringAfterLast('.', "")

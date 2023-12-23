@@ -1,6 +1,7 @@
 package io.github.kscripting.shell.integration.tools
 
 import io.github.kscripting.os.Os
+import io.github.kscripting.os.WindowsVfs
 import io.github.kscripting.os.instance.WindowsOs
 import io.github.kscripting.os.model.*
 import io.github.kscripting.shell.ShellExecutor
@@ -9,15 +10,13 @@ import net.igsoft.typeutils.globalcontext.GlobalContext
 
 @Suppress("MemberVisibilityCanBePrivate")
 object TestContext {
-    init {
-        GlobalContext.registerOrReplace(GlobalOsType.WINDOWS, WindowsOs(GlobalOsType.WINDOWS, "/home/admin"))
-    }
+    val windowsVfs = WindowsVfs( "/home/admin")
 
     val osType: OsType<out Os> = GlobalOsType.find(System.getProperty("osType")) ?: GlobalOsType.native
 
-    val projectPath: OsPath = OsPath(GlobalOsType.native, System.getProperty("projectPath")).toHosted(osType)
-    val execPath: OsPath = projectPath.resolve("build/shell_test/bin")
-    val testPath: OsPath = projectPath.resolve("build/shell_test/tmp")
+    val projectPath: OsPath<*> = OsPath(GlobalOsType.native, System.getProperty("projectPath")).toHosted(osType)
+    val execPath: OsPath<*> = projectPath.resolve("build/shell_test/bin")
+    val testPath: OsPath<*> = projectPath.resolve("build/shell_test/tmp")
 
     val pathEnvVariableName = if (osType.isWindowsLike()) "Path" else "PATH"
     val pathEnvVariableValue: String = System.getenv()[pathEnvVariableName]!!

@@ -1,15 +1,8 @@
 package io.github.kscripting.os.instance
 
-import io.github.kscripting.os.model.OsPath
-import io.github.kscripting.os.model.OsType
+import io.github.kscripting.os.OsTypeNew
 
-class CygwinOs(
-    override val type: OsType<CygwinOs>,
-    override val nativeType: OsType<WindowsOs>,
-    userHome: String,
-    nativeFileSystemRoot: String
-) : HostedOs {
+class CygwinOs(override val vfs: CygwinVfs, override val nativeOs: WindowsOs) : HostedOs {
+    override val type: OsTypeNew = OsTypeNew.CYGWIN
     override val osTypePrefix: String = "cygwin"
-    override val userHome: OsPath = OsPath(type, userHome)
-    override val nativeFileSystemRoot: OsPath = OsPath(nativeType, nativeFileSystemRoot)
 }

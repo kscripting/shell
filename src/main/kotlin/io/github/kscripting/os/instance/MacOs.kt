@@ -1,11 +1,9 @@
 package io.github.kscripting.os.instance
 
 import io.github.kscripting.os.Os
-import io.github.kscripting.os.model.OsPath
-import io.github.kscripting.os.model.OsType
+import io.github.kscripting.os.OsTypeNew
 
-class MacOs(override val type: OsType<MacOs>, userHome: String) : Os {
+class MacOs(override val vfs: MacOsVfs) : Os {
+    override val type: OsTypeNew = OsTypeNew.MACOS
     override val osTypePrefix: String = "darwin"
-    override val pathSeparator: String get() = "/"
-    override val userHome: OsPath = OsPath(type, userHome)
 }

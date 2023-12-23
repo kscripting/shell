@@ -34,7 +34,7 @@ object ShellExecutor {
     fun evalAndGobble(
         command: String,
         globalOsType: OsType<out Os> = GlobalOsType.native,
-        workingDirectory: OsPath? = null,
+        workingDirectory: OsPath<*>? = null,
         waitTimeMinutes: Int = 10,
         inheritInput: Boolean = false,
         inputSanitizer: Sanitizer = EMPTY_SANITIZER,
@@ -75,7 +75,7 @@ object ShellExecutor {
     fun eval(
         command: String,
         globalOsType: OsType<out Os> = GlobalOsType.native,
-        workingDirectory: OsPath? = null,
+        workingDirectory: OsPath<*>? = null,
         waitTimeMinutes: Int = 10,
         inheritInput: Boolean = false,
         inputSanitizer: Sanitizer = EMPTY_SANITIZER,
