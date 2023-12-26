@@ -1,6 +1,5 @@
 package io.github.kscripting.os
 
-import io.github.kscripting.os.model.GlobalOsType
 import org.apache.commons.lang3.SystemUtils
 
 class OsBuilder {
@@ -11,16 +10,16 @@ class OsBuilder {
     }
 
 
-    val native: OsTypeNew = guessNativeType()
+    val native: OsType = guessNativeType()
 
 //    fun findByOsTypeString(osTypeString: String): OsTypeNew? =
 //        GlobalOsType.find { osTypeString.startsWith(it.os.osTypePrefix, true) }
 
-    private fun guessNativeType(): OsTypeNew = when {
-        SystemUtils.IS_OS_MAC -> OsTypeNew.MACOS
-        SystemUtils.IS_OS_WINDOWS -> OsTypeNew.WINDOWS
-        SystemUtils.IS_OS_FREE_BSD -> OsTypeNew.FREEBSD
-        else -> OsTypeNew.LINUX
+    private fun guessNativeType(): OsType = when {
+        SystemUtils.IS_OS_MAC -> OsType.MACOS
+        SystemUtils.IS_OS_WINDOWS -> OsType.WINDOWS
+        SystemUtils.IS_OS_FREE_BSD -> OsType.FREEBSD
+        else -> OsType.LINUX
     }
 
 }

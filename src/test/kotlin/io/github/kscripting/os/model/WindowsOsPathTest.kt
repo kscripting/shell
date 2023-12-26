@@ -6,7 +6,7 @@ import assertk.assertions.hasMessage
 import assertk.assertions.isEqualTo
 import assertk.assertions.isInstanceOf
 import assertk.assertions.prop
-import io.github.kscripting.os.OsTypeNew
+import io.github.kscripting.os.OsType
 import io.github.kscripting.os.instance.WindowsVfs
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
@@ -18,63 +18,63 @@ class WindowsOsPathTest {
     @Test
     fun `Test Windows paths`() {
         assertThat(windowsVfs.createOsPath("C:\\")).let {
-            it.prop(OsPath<*>::osType).isEqualTo(OsTypeNew.WINDOWS)
+            it.prop(OsPath<*>::osType).isEqualTo(OsType.WINDOWS)
             it.prop(OsPath<*>::root).isEqualTo("C:\\")
             it.prop(OsPath<*>::pathParts).isEqualTo(emptyList())
         }
 
         assertThat(windowsVfs.createOsPath("C:\\home\\admin\\.kscript")).let {
-            it.prop(OsPath<*>::osType).isEqualTo(OsTypeNew.WINDOWS)
+            it.prop(OsPath<*>::osType).isEqualTo(OsType.WINDOWS)
             it.prop(OsPath<*>::root).isEqualTo("C:\\")
             it.prop(OsPath<*>::pathParts).isEqualTo(listOf("home", "admin", ".kscript"))
         }
 
         assertThat(windowsVfs.createOsPath("")).let {
-            it.prop(OsPath<*>::osType).isEqualTo(OsTypeNew.WINDOWS)
+            it.prop(OsPath<*>::osType).isEqualTo(OsType.WINDOWS)
             it.prop(OsPath<*>::root).isEqualTo("")
             it.prop(OsPath<*>::pathParts).isEqualTo(emptyList())
         }
 
         assertThat(windowsVfs.createOsPath("file.txt")).let {
-            it.prop(OsPath<*>::osType).isEqualTo(OsTypeNew.WINDOWS)
+            it.prop(OsPath<*>::osType).isEqualTo(OsType.WINDOWS)
             it.prop(OsPath<*>::root).isEqualTo("")
             it.prop(OsPath<*>::pathParts).isEqualTo(listOf("file.txt"))
         }
 
         assertThat(windowsVfs.createOsPath(".")).let {
-            it.prop(OsPath<*>::osType).isEqualTo(OsTypeNew.WINDOWS)
+            it.prop(OsPath<*>::osType).isEqualTo(OsType.WINDOWS)
             it.prop(OsPath<*>::root).isEqualTo("")
             it.prop(OsPath<*>::pathParts).isEqualTo(emptyList())
         }
 
         assertThat(windowsVfs.createOsPath(".\\home\\admin\\.kscript")).let {
-            it.prop(OsPath<*>::osType).isEqualTo(OsTypeNew.WINDOWS)
+            it.prop(OsPath<*>::osType).isEqualTo(OsType.WINDOWS)
             it.prop(OsPath<*>::root).isEqualTo("")
             it.prop(OsPath<*>::pathParts).isEqualTo(listOf("home", "admin", ".kscript"))
         }
 
         assertThat(windowsVfs.createOsPath("..\\home\\admin\\.kscript")).let {
-            it.prop(OsPath<*>::osType).isEqualTo(OsTypeNew.WINDOWS)
+            it.prop(OsPath<*>::osType).isEqualTo(OsType.WINDOWS)
             it.prop(OsPath<*>::root).isEqualTo("")
             it.prop(OsPath<*>::pathParts).isEqualTo(listOf("..", "home", "admin", ".kscript"))
         }
 
         assertThat(windowsVfs.createOsPath("..")).let {
-            it.prop(OsPath<*>::osType).isEqualTo(OsTypeNew.WINDOWS)
+            it.prop(OsPath<*>::osType).isEqualTo(OsType.WINDOWS)
             it.prop(OsPath<*>::root).isEqualTo("")
             it.prop(OsPath<*>::pathParts).isEqualTo(listOf(".."))
         }
 
         //Duplicated separators are accepted
         assertThat(windowsVfs.createOsPath("C:\\home\\\\\\\\admin\\.kscript\\")).let {
-            it.prop(OsPath<*>::osType).isEqualTo(OsTypeNew.WINDOWS)
+            it.prop(OsPath<*>::osType).isEqualTo(OsType.WINDOWS)
             it.prop(OsPath<*>::root).isEqualTo("C:\\")
             it.prop(OsPath<*>::pathParts).isEqualTo(listOf("home", "admin", ".kscript"))
         }
 
         //Both types of separator are accepted
         assertThat(windowsVfs.createOsPath("C:/home\\admin/.kscript////")).let {
-            it.prop(OsPath<*>::osType).isEqualTo(OsTypeNew.WINDOWS)
+            it.prop(OsPath<*>::osType).isEqualTo(OsType.WINDOWS)
             it.prop(OsPath<*>::root).isEqualTo("C:\\")
             it.prop(OsPath<*>::pathParts).isEqualTo(listOf("home", "admin", ".kscript"))
         }
@@ -83,19 +83,19 @@ class WindowsOsPathTest {
     @Test
     fun `Normalization of Windows paths`() {
         assertThat(windowsVfs.createOsPath("C:\\home\\admin\\.kscript\\..\\..\\")).let {
-            it.prop(OsPath<*>::osType).isEqualTo(OsTypeNew.WINDOWS)
+            it.prop(OsPath<*>::osType).isEqualTo(OsType.WINDOWS)
             it.prop(OsPath<*>::root).isEqualTo("C:\\")
             it.prop(OsPath<*>::pathParts).isEqualTo(listOf("home"))
         }
 
         assertThat(windowsVfs.createOsPath(".\\.\\.\\..\\..\\script")).let {
-            it.prop(OsPath<*>::osType).isEqualTo(OsTypeNew.WINDOWS)
+            it.prop(OsPath<*>::osType).isEqualTo(OsType.WINDOWS)
             it.prop(OsPath<*>::root).isEqualTo("")
             it.prop(OsPath<*>::pathParts).isEqualTo(listOf("..", "..", "script"))
         }
 
         assertThat(windowsVfs.createOsPath("C:\\a\\b\\c\\..\\d\\script")).let {
-            it.prop(OsPath<*>::osType).isEqualTo(OsTypeNew.WINDOWS)
+            it.prop(OsPath<*>::osType).isEqualTo(OsType.WINDOWS)
             it.prop(OsPath<*>::root).isEqualTo("C:\\")
             it.prop(OsPath<*>::pathParts).isEqualTo(listOf("a", "b", "d", "script"))
         }

@@ -1,8 +1,6 @@
 package io.github.kscripting.os.model
 
-import io.github.kscripting.os.OsTypeNew
 import io.github.kscripting.os.Vfs
-import io.github.kscripting.os.instance.HostedOs
 import java.io.File
 
 //import io.github.kscripting.os.Vfs
@@ -61,7 +59,7 @@ operator fun <T : Vfs> OsPath<T>.div(osPath: OsPath<T>): OsPath<T> = resolve(osP
 
 operator fun <T : Vfs> OsPath<T>.div(path: String): OsPath<T> = resolve(path)
 
-fun <T : Vfs> OsPath<T>.resolve(vararg pathParts: String): OsPath<T> = resolve(vfs.createOsPath(pathParts.joinToString("/")) as OsPath<T>)
+fun <T : Vfs> OsPath<T>.resolve(vararg pathParts: String): OsPath<T> = resolve(vfs.createOsPath(*pathParts) as OsPath<T>)
 
 fun <T : Vfs> OsPath<T>.resolve(osPath: OsPath<T>): OsPath<T> {
     if (osType != osPath.osType) {

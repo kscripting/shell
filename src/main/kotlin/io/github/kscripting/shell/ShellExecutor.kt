@@ -1,9 +1,7 @@
 package io.github.kscripting.shell
 
-import io.github.kscripting.os.Os
+import io.github.kscripting.os.OsType
 import io.github.kscripting.os.model.OsPath
-import io.github.kscripting.os.model.GlobalOsType
-import io.github.kscripting.os.model.OsType
 import io.github.kscripting.shell.model.ProcessResult
 import io.github.kscripting.shell.model.ShellType
 import io.github.kscripting.shell.process.EnvAdjuster
@@ -22,18 +20,18 @@ import java.util.regex.Pattern
 object ShellExecutor {
     private val SPLIT_PATTERN = Pattern.compile("([^\"]\\S*|\".+?\")\\s*")
     private val UTF_8 = StandardCharsets.UTF_8.name()
-    private val DEFAULT_SHELL_MAPPER: Map<OsType<out Os>, ShellType> = mapOf(
-        GlobalOsType.WINDOWS to ShellType.CMD,
-        GlobalOsType.LINUX to ShellType.BASH,
-        GlobalOsType.FREEBSD to ShellType.BASH,
-        GlobalOsType.MACOS to ShellType.BASH,
-        GlobalOsType.CYGWIN to ShellType.BASH,
-        GlobalOsType.MSYS to ShellType.BASH,
+    private val DEFAULT_SHELL_MAPPER: Map<OsType, ShellType> = mapOf(
+        OsType.WINDOWS to ShellType.CMD,
+        OsType.LINUX to ShellType.BASH,
+        OsType.FREEBSD to ShellType.BASH,
+        OsType.MACOS to ShellType.BASH,
+        OsType.CYGWIN to ShellType.BASH,
+        OsType.MSYS to ShellType.BASH,
     )
 
     fun evalAndGobble(
         command: String,
-        globalOsType: OsType<out Os> = GlobalOsType.native,
+        osType: OsType,
         workingDirectory: OsPath<*>? = null,
         waitTimeMinutes: Int = 10,
         inheritInput: Boolean = false,
@@ -42,7 +40,7 @@ object ShellExecutor {
         outPrinter: List<PrintStream> = emptyList(),
         errPrinter: List<PrintStream> = emptyList(),
         inputStream: InputStream? = null,
-        shellMapper: Map<OsType<out Os>, ShellType> = DEFAULT_SHELL_MAPPER,
+        shellMapper: Map<OsType, ShellType> = DEFAULT_SHELL_MAPPER,
         envAdjuster: EnvAdjuster = {}
     ): ProcessResult {
         val outStream = ByteArrayOutputStream(1024)
@@ -54,7 +52,7 @@ object ShellExecutor {
             PrintStream(errStream, true, UTF_8).use { additionalErrPrinter ->
                 result = eval(
                     command,
-                    globalOsType,
+                    osType,
                     workingDirectory,
                     waitTimeMinutes,
                     inheritInput,
@@ -74,7 +72,7 @@ object ShellExecutor {
 
     fun eval(
         command: String,
-        globalOsType: OsType<out Os> = GlobalOsType.native,
+        osType: OsType,
         workingDirectory: OsPath<*>? = null,
         waitTimeMinutes: Int = 10,
         inheritInput: Boolean = false,
@@ -83,12 +81,12 @@ object ShellExecutor {
         outPrinter: List<PrintStream> = DEFAULT_OUT_PRINTERS,
         errPrinter: List<PrintStream> = DEFAULT_ERR_PRINTERS,
         inputStream: InputStream? = null,
-        shellMapper: Map<OsType<out Os>, ShellType> = DEFAULT_SHELL_MAPPER,
+        shellMapper: Map<OsType, ShellType> = DEFAULT_SHELL_MAPPER,
         envAdjuster: EnvAdjuster = {}
     ): Int {
         val sanitizedCommand = inputSanitizer.sanitize(command)
 
-        val commandList = when (val shellType = shellMapper.getValue(globalOsType)) {
+        val commandList = when (val shellType = shellMapper.getValue(osType)) {
             //NOTE: usually command is an argument to shell (bash/cmd), so it should stay not split by whitespace as
             //a single string, but when there is no shell, we have to split the command
             ShellType.NONE -> {

@@ -1,12 +1,12 @@
 package io.github.kscripting.os.instance
 
-import io.github.kscripting.os.OsTypeNew
+import io.github.kscripting.os.OsType
 import io.github.kscripting.os.Vfs
 import io.github.kscripting.os.util.createPosixOsPath
 import io.github.kscripting.os.model.OsPath
 import io.github.kscripting.os.util.toHostedConverter
 
-class MsysVfs(override val nativeFsRoot: OsPath<WindowsVfs>, userHome: String) : HostedVfs, PosixVfs(OsTypeNew.MSYS) {
+class MsysVfs(override val nativeFsRoot: OsPath<WindowsVfs>, userHome: String) : HostedVfs, PosixVfs(OsType.MSYS) {
     override val userHome: OsPath<MsysVfs> = createOsPath(userHome)
     override fun createOsPath(path: String): OsPath<MsysVfs> = createPosixOsPath(this, path)
 

@@ -1,13 +1,13 @@
 package io.github.kscripting.os.instance
 
-import io.github.kscripting.os.OsTypeNew
+import io.github.kscripting.os.OsType
 import io.github.kscripting.os.Vfs
 import io.github.kscripting.os.util.createPosixOsPath
 import io.github.kscripting.os.model.OsPath
 import io.github.kscripting.os.util.toHostedConverter
 
 class CygwinVfs(override val nativeFsRoot: OsPath<WindowsVfs>, userHome: String) : HostedVfs,
-    PosixVfs(OsTypeNew.CYGWIN) {
+    PosixVfs(OsType.CYGWIN) {
 
     override fun toNative(providedOsPath: OsPath<out Vfs>): OsPath<WindowsVfs> {
         val osPath = providedOsPath as OsPath<CygwinVfs>

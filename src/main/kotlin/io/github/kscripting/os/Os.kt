@@ -7,7 +7,7 @@ interface Os {
     // startsWith() covers all cases.
     val osTypePrefix: String
 
-    val type: OsTypeNew
+    val type: OsType
 
     //val environment: Map<String, String>
     //val systemProperties: Map<String, String>

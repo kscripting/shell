@@ -1,12 +1,12 @@
 package io.github.kscripting.os.instance
 
-import io.github.kscripting.os.OsTypeNew
+import io.github.kscripting.os.OsType
 import io.github.kscripting.os.Vfs
 import io.github.kscripting.os.util.createFinalPath
 import io.github.kscripting.os.model.OsPath
 
 class WindowsVfs(userHome: String) : Vfs {
-    override val type: OsTypeNew = OsTypeNew.WINDOWS
+    override val type: OsType = OsType.WINDOWS
     override val pathSeparator: String = "\\"
 
     //https://stackoverflow.com/questions/1976007/what-characters-are-forbidden-in-windows-and-linux-directory-names

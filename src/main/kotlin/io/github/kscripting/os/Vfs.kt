@@ -4,7 +4,7 @@ import io.github.kscripting.os.model.OsPath
 
 
 interface Vfs {
-    val type: OsTypeNew
+    val type: OsType
     val pathSeparator: String
     val userHome: OsPath<out Vfs>
 

@@ -1,6 +1,6 @@
 package io.github.kscripting.os
 
-enum class OsTypeNew {
+enum class OsType {
     LINUX, WINDOWS, CYGWIN, MSYS, MACOS, FREEBSD;
 
     fun isPosixLike() =

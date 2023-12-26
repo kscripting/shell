@@ -1,6 +1,6 @@
 package io.github.kscripting.os.model
 
-import io.github.kscripting.os.OsTypeNew
+import io.github.kscripting.os.OsType
 import io.github.kscripting.os.Vfs
 
 sealed interface OsPathError {
@@ -12,7 +12,7 @@ sealed interface OsPathError {
 @Suppress("MemberVisibilityCanBePrivate")
 //TODO: should be only instantiated from VFS, not in any place
 data class OsPath<T : Vfs>(@Transient internal val vfs: T, val root: String, val pathParts: List<String>) {
-    val osType: OsTypeNew = vfs.type
+    val osType: OsType = vfs.type
     val isRelative: Boolean get() = root.isEmpty() && pathParts.isNotEmpty()
     val isAbsolute: Boolean get() = root.isNotEmpty()
 

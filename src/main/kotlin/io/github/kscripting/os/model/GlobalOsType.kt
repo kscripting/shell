@@ -10,30 +10,29 @@ import net.igsoft.typeutils.typedenum.TypedEnumCompanion
 import org.apache.commons.lang3.SystemUtils
 
 
-class GlobalOsType<T : Os> private constructor(private val marker: TypedMarker<T>) : OsType<T>,
-    DefaultTypedMarker<T>(marker) {
-    override val os: T get() = GlobalContext.getValue(marker)
+class GlobalOsType<T : Os> private constructor(private val marker: TypedMarker<T>) : DefaultTypedMarker<T>(marker) {
+    val os: T get() = GlobalContext.getValue(marker)
 
-    override fun isPosixLike() =
+    fun isPosixLike() =
         (this == LINUX || this == MACOS || this == FREEBSD || this == CYGWIN || this == MSYS)
 
-    override fun isPosixHostedOnWindows() = (this == CYGWIN || this == MSYS)
-    override fun isWindowsLike() = (this == WINDOWS)
+    fun isPosixHostedOnWindows() = (this == CYGWIN || this == MSYS)
+    fun isWindowsLike() = (this == WINDOWS)
 
-    companion object : TypedEnumCompanion<OsType<out Os>>() {
-        val LINUX: OsType<LinuxOs> = GlobalOsType(AutoTypedMarker.create<LinuxOs>())
-        val WINDOWS: OsType<WindowsOs> = GlobalOsType(AutoTypedMarker.create<WindowsOs>())
-        val CYGWIN: OsType<CygwinOs> = GlobalOsType(AutoTypedMarker.create<CygwinOs>())
-        val MSYS: OsType<MsysOs> = GlobalOsType(AutoTypedMarker.create<MsysOs>())
-        val MACOS: OsType<MacOs> = GlobalOsType(AutoTypedMarker.create<MacOs>())
-        val FREEBSD: OsType<FreeBsdOs> = GlobalOsType(AutoTypedMarker.create<FreeBsdOs>())
+    companion object : TypedEnumCompanion<GlobalOsType<out Os>>() {
+        val LINUX: GlobalOsType<LinuxOs> = GlobalOsType(AutoTypedMarker.create<LinuxOs>())
+        val WINDOWS: GlobalOsType<WindowsOs> = GlobalOsType(AutoTypedMarker.create<WindowsOs>())
+        val CYGWIN: GlobalOsType<CygwinOs> = GlobalOsType(AutoTypedMarker.create<CygwinOs>())
+        val MSYS: GlobalOsType<MsysOs> = GlobalOsType(AutoTypedMarker.create<MsysOs>())
+        val MACOS: GlobalOsType<MacOs> = GlobalOsType(AutoTypedMarker.create<MacOs>())
+        val FREEBSD: GlobalOsType<FreeBsdOs> = GlobalOsType(AutoTypedMarker.create<FreeBsdOs>())
 
-        val native: OsType<out Os> = guessNativeType()
+        val native: GlobalOsType<out Os> = guessNativeType()
 
-        fun findByOsTypeString(osTypeString: String): OsType<out Os>? =
+        fun findByOsTypeString(osTypeString: String): GlobalOsType<out Os>? =
             find { osTypeString.startsWith(it.os.osTypePrefix, true) }
 
-        private fun guessNativeType(): OsType<out Os> {
+        private fun guessNativeType(): GlobalOsType<out Os> {
             when {
                 SystemUtils.IS_OS_LINUX -> return LINUX
                 SystemUtils.IS_OS_MAC -> return MACOS
