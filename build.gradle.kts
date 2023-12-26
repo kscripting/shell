@@ -1,51 +1,50 @@
-val kotlinVersion: String = "1.7.21"
+
+val kotlinVersion: String = "1.8.22"
 
 plugins {
-    kotlin("jvm") version "1.7.21"
+    kotlin("jvm") version "1.8.22"
     id("com.adarshr.test-logger") version "3.2.0"
     `maven-publish`
     signing
+    idea
 }
 
 repositories {
+    mavenLocal()
     mavenCentral()
 }
 
 group = "io.github.kscripting"
-version = "0.5.2"
+version = "0.6.0-SNAPSHOT"
+
+kotlin {
+    jvmToolchain(11)
+}
+
+configurations.all {
+    resolutionStrategy.cacheDynamicVersionsFor(0, "seconds")
+    resolutionStrategy.cacheChangingModulesFor(0, "seconds")
+}
+
+/*
 
 sourceSets {
-    create("integration") {
-//        test {  //With that idea can understand that 'integration' is test source set and do not complain about test
-//        names starting with upper case, but it doesn't compile correctly with it
-        java.srcDir("$projectDir/src/integration/kotlin")
-        resources.srcDir("$projectDir/src/integration/resources")
+    create("itest") {
+        kotlin.srcDir("$projectDir/src/itest/kotlin")
+        resources.srcDir("$projectDir/src/itest/resources")
+
         compileClasspath += main.get().output + test.get().output
         runtimeClasspath += main.get().output + test.get().output
     }
-//    }
 }
 
 configurations {
-    get("integrationImplementation").apply { extendsFrom(get("testImplementation")) }
+    get("itestImplementation").apply { extendsFrom(get("testImplementation")) }
 }
 
-java {
-    toolchain {
-        languageVersion.set(JavaLanguageVersion.of(8))
-    }
 
-    withJavadocJar()
-    withSourcesJar()
-}
 
-tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().all {
-    kotlinOptions {
-        jvmTarget = "1.8"
-    }
-}
-
-tasks.create<Test>("integration") {
+tasks.create<Test>("itest") {
     val itags = System.getProperty("includeTags") ?: ""
     val etags = System.getProperty("excludeTags") ?: ""
 
@@ -65,11 +64,10 @@ tasks.create<Test>("integration") {
 
     description = "Runs the integration tests."
     group = "verification"
-    testClassesDirs = sourceSets["integration"].output.classesDirs
-    classpath = sourceSets["integration"].runtimeClasspath
+    testClassesDirs = sourceSets["itest"].output.classesDirs
+    classpath = sourceSets["itest"].runtimeClasspath
     outputs.upToDateWhen { false }
-    mustRunAfter(tasks["test"])
-    //dependsOn(tasks["assemble"], tasks["test"])
+    dependsOn(tasks["assemble"])
 
     doLast {
         println("Include tags: $itags")
@@ -79,9 +77,30 @@ tasks.create<Test>("integration") {
 
 tasks.create<Task>("printIntegrationClasspath") {
     doLast {
-        println(sourceSets["integration"].runtimeClasspath.asPath)
+        println(sourceSets["itest"].runtimeClasspath.asPath)
     }
 }
+
+idea {
+    module {
+        testSources.from(sourceSets["itest"].kotlin.srcDirs)
+    }
+}
+
+val testToolsJar by tasks.registering(Jar::class) {
+    //archiveFileName.set("eulenspiegel-testHelpers-$version.jar")
+    archiveClassifier.set("test")
+    include("io/github/kscripting/shell/integration/tools/*")
+    from(sourceSets["itest"].output)
+}
+
+
+
+*/
+*/
+
+//val publishArtifact = artifacts.add("archives", testToolsJar)
+val publishArtifact = artifacts.add("archives", tasks.jar) //TODO: above line is correct - current should be removed
 
 testlogger {
     showStandardStreams = true
@@ -92,35 +111,42 @@ tasks.test {
     useJUnitPlatform()
 }
 
+val licencesSpec = Action<MavenPomLicenseSpec> {
+    license {
+        name.set("MIT License")
+        url.set("https://opensource.org/licenses/MIT")
+    }
+}
+
+val developersSpec = Action<MavenPomDeveloperSpec> {
+    developer {
+        id.set("aartiPl")
+        name.set("Marcin Kuszczak")
+        email.set("aarti@interia.pl")
+    }
+}
+
+val scmSpec = Action<MavenPomScm> {
+    connection.set("scm:git:git://https://github.com/kscripting/shell.git")
+    developerConnection.set("scm:git:ssh:https://github.com/kscripting/shell.git")
+    url.set("https://github.com/kscripting/shell")
+}
+
 publishing {
     publications {
-        create<MavenPublication>("mavenJava") {
+        create<MavenPublication>("shell") {
             artifactId = "shell"
             from(components["java"])
+            artifact(publishArtifact)
 
             pom {
-                name.set("kscript")
+                name.set("shell")
                 description.set("Shell - library for interoperability with different system shells")
                 url.set("https://github.com/kscripting/shell")
 
-                licenses {
-                    license {
-                        name.set("MIT License")
-                        url.set("https://opensource.org/licenses/MIT")
-                    }
-                }
-                developers {
-                    developer {
-                        id.set("aartiPl")
-                        name.set("Marcin Kuszczak")
-                        email.set("aarti@interia.pl")
-                    }
-                }
-                scm {
-                    connection.set("scm:git:git://https://github.com/kscripting/shell.git")
-                    developerConnection.set("scm:git:ssh:https://github.com/kscripting/shell.git")
-                    url.set("https://github.com/kscripting/shell")
-                }
+                licenses(licencesSpec)
+                developers(developersSpec)
+                scm(scmSpec)
             }
         }
     }
@@ -140,28 +166,24 @@ publishing {
 }
 
 signing {
-    sign(publishing.publications["mavenJava"])
+    sign(publishing.publications["shell"])
 }
 
 dependencies {
+    api("net.igsoft:typeutils:0.7.0-SNAPSHOT")
+
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlinVersion")
     implementation("org.jetbrains.kotlin:kotlin-reflect:$kotlinVersion")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.4")
-
-    implementation("org.jetbrains.kotlin:kotlin-scripting-common:$kotlinVersion")
-    implementation("org.jetbrains.kotlin:kotlin-scripting-jvm:$kotlinVersion")
-    implementation("org.jetbrains.kotlin:kotlin-scripting-dependencies-maven-all:$kotlinVersion")
-    implementation("io.arrow-kt:arrow-core:1.1.2")
     implementation("org.apache.commons:commons-lang3:3.12.0")
-
-    implementation("org.slf4j:slf4j-nop:2.0.4")
+    implementation("org.slf4j:slf4j-nop:2.0.5")
 
     testImplementation("org.junit.platform:junit-platform-suite-engine:1.9.0")
     testImplementation("org.junit.platform:junit-platform-suite-api:1.9.0")
     testImplementation("org.junit.platform:junit-platform-suite-commons:1.9.0")
     testImplementation("org.junit.jupiter:junit-jupiter-engine:5.9.0")
     testImplementation("org.junit.jupiter:junit-jupiter-params:5.9.0")
-    testImplementation("com.willowtreeapps.assertk:assertk-jvm:0.25")
+    testImplementation("com.willowtreeapps.assertk:assertk-jvm:0.27.0")
     testImplementation("io.mockk:mockk:1.13.2")
 
     testImplementation(kotlin("script-runtime"))
