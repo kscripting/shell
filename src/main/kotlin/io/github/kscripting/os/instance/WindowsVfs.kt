@@ -15,9 +15,9 @@ class WindowsVfs(userHome: String) : Vfs {
         "^([a-zA-Z]:(?=[\\\\/])|\\\\\\\\(?:[^*:<>?\\\\/|]+\\\\[^*:<>?\\\\/|]+|\\?\\\\(?:[a-zA-Z]:(?=\\\\)|(?:UNC\\\\)?[^*:<>?\\\\/|]+\\\\[^*:<>?\\\\/|]+)))".toRegex()
 
 
-    override val userHome: OsPath<WindowsVfs> = createOsPath(userHome)
+    override val userHome: OsPath = createOsPath(userHome)
 
-    override fun createOsPath(path: String): OsPath<WindowsVfs> {
+    override fun createOsPath(path: String): OsPath {
         //Detect root
         val root = when {
             path.startsWith("~/") || path.startsWith("~\\") -> "~"

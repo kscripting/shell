@@ -18,86 +18,86 @@ class PosixOsPathTest {
     @Test
     fun `Test Posix paths`() {
         assertThat(linuxVfs.createOsPath("/")).let {
-            it.prop(OsPath<*>::osType).isEqualTo(OsType.LINUX)
-            it.prop(OsPath<*>::root).isEqualTo("/")
-            it.prop(OsPath<*>::pathParts).isEqualTo(emptyList())
+            it.prop(OsPath::osType).isEqualTo(OsType.LINUX)
+            it.prop(OsPath::root).isEqualTo("/")
+            it.prop(OsPath::pathParts).isEqualTo(emptyList())
         }
 
         assertThat(linuxVfs.createOsPath("/home/admin/.kscript")).let {
-            it.prop(OsPath<*>::osType).isEqualTo(OsType.LINUX)
-            it.prop(OsPath<*>::root).isEqualTo("/")
-            it.prop(OsPath<*>::pathParts).isEqualTo(listOf("home", "admin", ".kscript"))
+            it.prop(OsPath::osType).isEqualTo(OsType.LINUX)
+            it.prop(OsPath::root).isEqualTo("/")
+            it.prop(OsPath::pathParts).isEqualTo(listOf("home", "admin", ".kscript"))
         }
 
         assertThat(linuxVfs.createOsPath("./home/admin/.kscript")).let {
-            it.prop(OsPath<*>::osType).isEqualTo(OsType.LINUX)
-            it.prop(OsPath<*>::root).isEqualTo("")
-            it.prop(OsPath<*>::pathParts).isEqualTo(listOf("home", "admin", ".kscript"))
+            it.prop(OsPath::osType).isEqualTo(OsType.LINUX)
+            it.prop(OsPath::root).isEqualTo("")
+            it.prop(OsPath::pathParts).isEqualTo(listOf("home", "admin", ".kscript"))
         }
 
         assertThat(linuxVfs.createOsPath("")).let {
-            it.prop(OsPath<*>::osType).isEqualTo(OsType.LINUX)
-            it.prop(OsPath<*>::root).isEqualTo("")
-            it.prop(OsPath<*>::pathParts).isEqualTo(emptyList())
+            it.prop(OsPath::osType).isEqualTo(OsType.LINUX)
+            it.prop(OsPath::root).isEqualTo("")
+            it.prop(OsPath::pathParts).isEqualTo(emptyList())
         }
 
         assertThat(linuxVfs.createOsPath("file.txt")).let {
-            it.prop(OsPath<*>::osType).isEqualTo(OsType.LINUX)
-            it.prop(OsPath<*>::root).isEqualTo("")
-            it.prop(OsPath<*>::pathParts).isEqualTo(listOf("file.txt"))
+            it.prop(OsPath::osType).isEqualTo(OsType.LINUX)
+            it.prop(OsPath::root).isEqualTo("")
+            it.prop(OsPath::pathParts).isEqualTo(listOf("file.txt"))
         }
 
         assertThat(linuxVfs.createOsPath(".")).let {
-            it.prop(OsPath<*>::osType).isEqualTo(OsType.LINUX)
-            it.prop(OsPath<*>::root).isEqualTo("")
-            it.prop(OsPath<*>::pathParts).isEqualTo(emptyList())
+            it.prop(OsPath::osType).isEqualTo(OsType.LINUX)
+            it.prop(OsPath::root).isEqualTo("")
+            it.prop(OsPath::pathParts).isEqualTo(emptyList())
         }
 
         assertThat(linuxVfs.createOsPath("../home/admin/.kscript")).let {
-            it.prop(OsPath<*>::osType).isEqualTo(OsType.LINUX)
-            it.prop(OsPath<*>::root).isEqualTo("")
-            it.prop(OsPath<*>::pathParts).isEqualTo(listOf("..", "home", "admin", ".kscript"))
+            it.prop(OsPath::osType).isEqualTo(OsType.LINUX)
+            it.prop(OsPath::root).isEqualTo("")
+            it.prop(OsPath::pathParts).isEqualTo(listOf("..", "home", "admin", ".kscript"))
         }
 
         assertThat(linuxVfs.createOsPath("..")).let {
-            it.prop(OsPath<*>::osType).isEqualTo(OsType.LINUX)
-            it.prop(OsPath<*>::root).isEqualTo("")
-            it.prop(OsPath<*>::pathParts).isEqualTo(listOf(".."))
+            it.prop(OsPath::osType).isEqualTo(OsType.LINUX)
+            it.prop(OsPath::root).isEqualTo("")
+            it.prop(OsPath::pathParts).isEqualTo(listOf(".."))
         }
 
         //Duplicated separators are accepted
         assertThat(linuxVfs.createOsPath("..//home////admin/.kscript/")).let {
-            it.prop(OsPath<*>::osType).isEqualTo(OsType.LINUX)
-            it.prop(OsPath<*>::root).isEqualTo("")
-            it.prop(OsPath<*>::pathParts).isEqualTo(listOf("..", "home", "admin", ".kscript"))
+            it.prop(OsPath::osType).isEqualTo(OsType.LINUX)
+            it.prop(OsPath::root).isEqualTo("")
+            it.prop(OsPath::pathParts).isEqualTo(listOf("..", "home", "admin", ".kscript"))
         }
 
         //Both types of separator are accepted
         assertThat(linuxVfs.createOsPath("..//home\\admin\\.kscript/")).let {
-            it.prop(OsPath<*>::osType).isEqualTo(OsType.LINUX)
-            it.prop(OsPath<*>::root).isEqualTo("")
-            it.prop(OsPath<*>::pathParts).isEqualTo(listOf("..", "home", "admin", ".kscript"))
+            it.prop(OsPath::osType).isEqualTo(OsType.LINUX)
+            it.prop(OsPath::root).isEqualTo("")
+            it.prop(OsPath::pathParts).isEqualTo(listOf("..", "home", "admin", ".kscript"))
         }
     }
 
     @Test
     fun `Normalization of Posix paths`() {
         assertThat(linuxVfs.createOsPath("/home/admin/.kscript/../../")).let {
-            it.prop(OsPath<*>::osType).isEqualTo(OsType.LINUX)
-            it.prop(OsPath<*>::root).isEqualTo("/")
-            it.prop(OsPath<*>::pathParts).isEqualTo(listOf("home"))
+            it.prop(OsPath::osType).isEqualTo(OsType.LINUX)
+            it.prop(OsPath::root).isEqualTo("/")
+            it.prop(OsPath::pathParts).isEqualTo(listOf("home"))
         }
 
         assertThat(linuxVfs.createOsPath("./././../../script")).let {
-            it.prop(OsPath<*>::osType).isEqualTo(OsType.LINUX)
-            it.prop(OsPath<*>::root).isEqualTo("")
-            it.prop(OsPath<*>::pathParts).isEqualTo(listOf("..", "..", "script"))
+            it.prop(OsPath::osType).isEqualTo(OsType.LINUX)
+            it.prop(OsPath::root).isEqualTo("")
+            it.prop(OsPath::pathParts).isEqualTo(listOf("..", "..", "script"))
         }
 
         assertThat(linuxVfs.createOsPath("/a/b/c/../d/script")).let {
-            it.prop(OsPath<*>::osType).isEqualTo(OsType.LINUX)
-            it.prop(OsPath<*>::root).isEqualTo("/")
-            it.prop(OsPath<*>::pathParts).isEqualTo(listOf("a", "b", "d", "script"))
+            it.prop(OsPath::osType).isEqualTo(OsType.LINUX)
+            it.prop(OsPath::root).isEqualTo("/")
+            it.prop(OsPath::pathParts).isEqualTo(listOf("a", "b", "d", "script"))
         }
 
         assertFailure { linuxVfs.createOsPath("/.kscript/../../") }.isInstanceOf(IllegalArgumentException::class)

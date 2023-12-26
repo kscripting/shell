@@ -8,7 +8,7 @@ import io.github.kscripting.os.model.OsPath
 import io.github.kscripting.os.model.startsWith
 
 
-fun <T : Vfs> createPosixOsPath(vfs: T, path: String): OsPath<T> {
+fun createPosixOsPath(vfs: Vfs, path: String): OsPath {
     require(vfs.isValid(path))
 
     //Detect root
@@ -21,7 +21,7 @@ fun <T : Vfs> createPosixOsPath(vfs: T, path: String): OsPath<T> {
     return createFinalPath(vfs, path, root)
 }
 
-fun <T : Vfs> createFinalPath(vfs: T, path: String, root: String): OsPath<T> {
+fun createFinalPath(vfs: Vfs, path: String, root: String): OsPath {
     //Remove also empty path parts - there were duplicated or trailing slashes / backslashes in initial path
     val pathWithoutRoot = path.drop(root.length)
 
@@ -31,12 +31,12 @@ fun <T : Vfs> createFinalPath(vfs: T, path: String, root: String): OsPath<T> {
     return OsPath(vfs, root, normalize(root, pathPartsResolved))
 }
 
-fun <T: HostedVfs> toHostedConverter(vfs: T, osPath: OsPath<WindowsVfs>): OsPath<T> {
+fun <T: HostedVfs> toHostedConverter(vfs: T, osPath: OsPath): OsPath {
     val newParts = mutableListOf<String>()
     var newRoot = ""
 
     if (osPath.isAbsolute) {
-        val nativeFsRoot = vfs.nativeFsRoot as OsPath<WindowsVfs>
+        val nativeFsRoot = vfs.nativeFsRoot
 
         if (osPath.startsWith(nativeFsRoot)) {
             if (osPath.pathParts.subList(nativeFsRoot.pathParts.size, osPath.pathParts.size)

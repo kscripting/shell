@@ -5,6 +5,6 @@ import io.github.kscripting.os.util.createPosixOsPath
 import io.github.kscripting.os.model.OsPath
 
 class MacOsVfs(userHome: String) : PosixVfs(OsType.MACOS) {
-    override val userHome: OsPath<MacOsVfs> = createOsPath(userHome)
-    override fun createOsPath(path: String): OsPath<MacOsVfs> = createPosixOsPath(this, path)
+    override val userHome: OsPath = createOsPath(userHome)
+    override fun createOsPath(path: String): OsPath = createPosixOsPath(this, path)
 }

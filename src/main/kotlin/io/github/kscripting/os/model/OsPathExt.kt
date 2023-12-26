@@ -18,12 +18,12 @@ import java.nio.file.Paths
 //import java.nio.file.Paths
 //import kotlin.io.path.*
 //
-fun <T: Vfs> OsPath<T>.toNative(): OsPath<*> = (vfs as? HostedVfs)?.toNative(this) ?: this
+fun OsPath.toNative(): OsPath = (vfs as? HostedVfs)?.toNative(this) ?: this
 
 
 fun <E> List<E>.startsWith(list: List<E>): Boolean = (this.size >= list.size && this.subList(0, list.size) == list)
 
-fun <T : Vfs> OsPath<T>.startsWith(osPath: OsPath<T>): Boolean = root == osPath.root && pathParts.startsWith(osPath.pathParts)
+fun OsPath.startsWith(osPath: OsPath): Boolean = root == osPath.root && pathParts.startsWith(osPath.pathParts)
 
 
 //// Conversion to OsPath
@@ -36,9 +36,9 @@ fun <T : Vfs> OsPath<T>.startsWith(osPath: OsPath<T>): Boolean = root == osPath.
 
 
 //// Conversion from OsPath
-fun OsPath<*>.toNativePath(): Path = Paths.get(toNative().path)
-fun OsPath<*>.toNativeFile(): File = File(toNative().path)
-fun OsPath<*>.toNativeUri(): URI = File(toNative().path).toURI()
+fun OsPath.toNativePath(): Path = Paths.get(toNative().path)
+fun OsPath.toNativeFile(): File = File(toNative().path)
+fun OsPath.toNativeUri(): URI = File(toNative().path).toURI()
 
 
 //// OsPath operations
@@ -56,13 +56,13 @@ fun OsPath<*>.toNativeUri(): URI = File(toNative().path).toURI()
 //fun OsPath.readText(charset: Charset = Charsets.UTF_8): String = toNativePath().readText(charset)
 //
 
-operator fun <T : Vfs> OsPath<T>.div(osPath: OsPath<T>): OsPath<T> = resolve(osPath)
+operator fun OsPath.div(osPath: OsPath): OsPath = resolve(osPath)
 
-operator fun <T : Vfs> OsPath<T>.div(path: String): OsPath<T> = resolve(path)
+operator fun OsPath.div(path: String): OsPath = resolve(path)
 
-fun <T : Vfs> OsPath<T>.resolve(vararg pathParts: String): OsPath<T> = resolve(vfs.createOsPath(*pathParts) as OsPath<T>)
+fun OsPath.resolve(vararg pathParts: String): OsPath = resolve(vfs.createOsPath(*pathParts))
 
-fun <T : Vfs> OsPath<T>.resolve(osPath: OsPath<T>): OsPath<T> {
+fun OsPath.resolve(osPath: OsPath): OsPath {
     if (osType != osPath.osType) {
         throw IllegalArgumentException("Paths from different OS's: '${osType}' path can not be resolved with '${osPath.osType}' path")
     }

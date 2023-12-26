@@ -4,8 +4,8 @@ import io.github.kscripting.os.Vfs
 import io.github.kscripting.os.model.OsPath
 
 interface HostedVfs : Vfs {
-    val nativeFsRoot: OsPath<out Vfs>
+    val nativeFsRoot: OsPath
 
-    fun toNative(osPath: OsPath<out Vfs>): OsPath<out Vfs>
-    fun toHosted(osPath: OsPath<out Vfs>): OsPath<out Vfs>
+    fun toNative(osPath: OsPath): OsPath
+    fun toHosted(osPath: OsPath): OsPath
 }

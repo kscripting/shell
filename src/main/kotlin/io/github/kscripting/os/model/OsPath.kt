@@ -11,7 +11,7 @@ sealed interface OsPathError {
 //Path representation for different OSes
 @Suppress("MemberVisibilityCanBePrivate")
 //TODO: should be only instantiated from VFS, not in any place
-data class OsPath<T : Vfs>(@Transient internal val vfs: T, val root: String, val pathParts: List<String>) {
+data class OsPath(@Transient internal val vfs: Vfs, val root: String, val pathParts: List<String>) {
     val osType: OsType = vfs.type
     val isRelative: Boolean get() = root.isEmpty() && pathParts.isNotEmpty()
     val isAbsolute: Boolean get() = root.isNotEmpty()

@@ -6,12 +6,12 @@ import io.github.kscripting.os.util.createPosixOsPath
 import io.github.kscripting.os.model.OsPath
 import io.github.kscripting.os.util.toHostedConverter
 
-class MsysVfs(override val nativeFsRoot: OsPath<WindowsVfs>, userHome: String) : HostedVfs, PosixVfs(OsType.MSYS) {
-    override val userHome: OsPath<MsysVfs> = createOsPath(userHome)
-    override fun createOsPath(path: String): OsPath<MsysVfs> = createPosixOsPath(this, path)
+class MsysVfs(override val nativeFsRoot: OsPath, userHome: String) : HostedVfs, PosixVfs(OsType.MSYS) {
+    override val userHome: OsPath = createOsPath(userHome)
+    override fun createOsPath(path: String): OsPath = createPosixOsPath(this, path)
 
-    override fun toNative(providedOsPath: OsPath<out Vfs>): OsPath<WindowsVfs> {
-        val osPath = providedOsPath as OsPath<MsysVfs>
+    override fun toNative(providedOsPath: OsPath): OsPath {
+        val osPath = providedOsPath
         val newParts = mutableListOf<String>()
         var newRoot = ""
 
@@ -36,7 +36,7 @@ class MsysVfs(override val nativeFsRoot: OsPath<WindowsVfs>, userHome: String) :
         return OsPath(nativeFsRoot.vfs, newRoot, newParts)
     }
 
-    override fun toHosted(osPath: OsPath<out Vfs>): OsPath<MsysVfs> {
-        return toHostedConverter(this, osPath as OsPath<WindowsVfs>)
+    override fun toHosted(osPath: OsPath): OsPath {
+        return toHostedConverter(this, osPath)
     }
 }
