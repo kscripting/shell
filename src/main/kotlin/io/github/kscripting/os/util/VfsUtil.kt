@@ -28,7 +28,7 @@ fun <T : Vfs> createFinalPath(vfs: T, path: String, root: String): OsPath<T> {
     require(vfs.isValid(pathWithoutRoot))
 
     val pathPartsResolved = pathWithoutRoot.split('/', '\\').filter { it.isNotBlank() }
-    return vfs.normalize(OsPath(vfs, root, pathPartsResolved))
+    return OsPath(vfs, root, normalize(root, pathPartsResolved))
 }
 
 fun <T: HostedVfs> toHostedConverter(vfs: T, osPath: OsPath<WindowsVfs>): OsPath<T> {
@@ -62,6 +62,7 @@ fun <T: HostedVfs> toHostedConverter(vfs: T, osPath: OsPath<WindowsVfs>): OsPath
 
             newRoot = "/"
 
+            //TODO: not generic!!
             if (vfs is CygwinVfs) {
                 newParts.add("cygdrive")
             }
@@ -75,4 +76,57 @@ fun <T: HostedVfs> toHostedConverter(vfs: T, osPath: OsPath<WindowsVfs>): OsPath
     }
 
     return OsPath(vfs, newRoot, newParts)
+}
+
+fun normalize(root: String, pathParts: List<String>): List<String> {
+    //Relative:
+    // ./../ --> ../
+    // ./a/../ --> ./
+    // ./a/ --> ./a
+    // ../a --> ../a
+    // ../../a --> ../../a
+
+    //Absolute:
+    // /../ --> invalid (above root)
+    // /a/../ --> /
+
+    val isAbsolute = root.isNotEmpty()
+    val newParts = mutableListOf<String>()
+    var index = 0
+
+    while (index < pathParts.size) {
+        if (pathParts[index] == ".") {
+            //Just skip . without adding it to newParts
+        } else if (pathParts[index] == "..") {
+            if (isAbsolute && newParts.size == 0) {
+                throw IllegalArgumentException("Path after normalization goes beyond root element: '${root}'")
+            }
+
+            if (newParts.size > 0) {
+                when (newParts.last()) {
+                    "." -> {
+                        //It's the first element - other dots should be already removed before
+                        newParts.removeAt(newParts.size - 1)
+                        newParts.add("..")
+                    }
+
+                    ".." -> {
+                        newParts.add("..")
+                    }
+
+                    else -> {
+                        newParts.removeAt(newParts.size - 1)
+                    }
+                }
+            } else {
+                newParts.add("..")
+            }
+        } else {
+            newParts.add(pathParts[index])
+        }
+
+        index += 1
+    }
+
+    return newParts
 }

@@ -5,6 +5,7 @@ import java.io.File
 
 //import io.github.kscripting.os.Vfs
 import io.github.kscripting.os.instance.HostedVfs
+import io.github.kscripting.os.util.normalize
 import java.net.URI
 import java.nio.file.Path
 import java.nio.file.Paths
@@ -75,7 +76,7 @@ fun <T : Vfs> OsPath<T>.resolve(osPath: OsPath<T>): OsPath<T> {
         addAll(osPath.pathParts)
     }
 
-    return vfs.normalize(vfs.createOsPath(root, newPathParts) as OsPath<T>)
+    return OsPath(vfs, root, normalize(root, newPathParts))
 }
 
 //// OsPath accessors
