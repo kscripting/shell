@@ -1,9 +1,9 @@
 
-val kotlinVersion: String = "1.8.22"
+val kotlinVersion: String = "2.1.21"
 
 plugins {
-    kotlin("jvm") version "1.8.22"
-    id("com.adarshr.test-logger") version "3.2.0"
+    kotlin("jvm") version "2.1.21"
+    id("com.adarshr.test-logger") version "4.0.0"
     `maven-publish`
     signing
     idea
@@ -18,7 +18,7 @@ group = "io.github.kscripting"
 version = "0.6.0-SNAPSHOT"
 
 kotlin {
-    jvmToolchain(11)
+    jvmToolchain(17)
 }
 
 configurations.all {
@@ -170,20 +170,23 @@ signing {
 }
 
 dependencies {
-    api("net.igsoft:typeutils:0.7.0-SNAPSHOT")
-
-    implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlinVersion")
     implementation("org.jetbrains.kotlin:kotlin-reflect:$kotlinVersion")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.4")
+
+    api("net.igsoft:typeutils:0.7.0-SNAPSHOT")
+
     implementation("org.apache.commons:commons-lang3:3.12.0")
     implementation("org.slf4j:slf4j-nop:2.0.5")
 
-    testImplementation("org.junit.platform:junit-platform-suite-engine:1.9.0")
-    testImplementation("org.junit.platform:junit-platform-suite-api:1.9.0")
-    testImplementation("org.junit.platform:junit-platform-suite-commons:1.9.0")
-    testImplementation("org.junit.jupiter:junit-jupiter-engine:5.9.0")
-    testImplementation("org.junit.jupiter:junit-jupiter-params:5.9.0")
-    testImplementation("com.willowtreeapps.assertk:assertk-jvm:0.27.0")
+    val junitPlatformVersion = "1.13.1"
+    val junitEngineVersion = "5.13.1"
+    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+    testImplementation("org.junit.platform:junit-platform-suite-engine:${junitPlatformVersion}")
+    testImplementation("org.junit.platform:junit-platform-suite-api:${junitPlatformVersion}")
+    testImplementation("org.junit.platform:junit-platform-suite-commons:${junitPlatformVersion}")
+    testImplementation("org.junit.jupiter:junit-jupiter:$junitEngineVersion")
+    testImplementation("org.junit.jupiter:junit-jupiter-params:$junitEngineVersion")
+    testImplementation("com.willowtreeapps.assertk:assertk:0.28.1")
     testImplementation("io.mockk:mockk:1.13.2")
 
     testImplementation(kotlin("script-runtime"))

@@ -18,6 +18,8 @@ class WindowsVfs(userHome: String) : Vfs {
     override val userHome: OsPath = createOsPath(userHome)
 
     override fun createOsPath(path: String): OsPath {
+        isValid(path).getOrThrow()
+
         //Detect root
         val root = when {
             path.startsWith("~/") || path.startsWith("~\\") -> "~"
@@ -31,8 +33,16 @@ class WindowsVfs(userHome: String) : Vfs {
         return createFinalPath(this, path, root)
     }
 
-    override fun isValid(path: String): Boolean {
-        return path.none { INVALID_CHARS.contains(it) }
+    override fun isValid(path: String): Result<Unit> {
+        val isAbsolute = path.length >= 2 && path[1] == ':' && path[0] != '\\'
+
+        for(char in path.withIndex()) {
+            if (!(isAbsolute && char.index == 1) && char.value in INVALID_CHARS) {
+                return Result.failure(IllegalArgumentException("Invalid character '${char.value}' in path '$path'"))
+            }
+        }
+
+        return Result.success(Unit)
     }
 
     companion object {

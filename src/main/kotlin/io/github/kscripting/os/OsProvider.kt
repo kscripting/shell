@@ -1,11 +1,11 @@
 package io.github.kscripting.os
 
 import io.github.kscripting.os.instance.LinuxOs
-import net.igsoft.typeutils.marker.NamedAutoTypedMarker
+import net.igsoft.typeutils.marker.AutoTypedMarker
 
 interface OsProvider {
     val native: Os
-    fun provide(marker: NamedAutoTypedMarker<out Os> = native.marker): Os
+    fun provide(marker: AutoTypedMarker<out Os> = native.marker): Os
 
     companion object {
         private val defaultOsProvider = DefaultOsProvider()
@@ -48,7 +48,7 @@ fun osContext(osProvider: OsProvider, block: (OsProvider) -> Unit) {
 class DefaultOsProvider : OsProvider {
     override val native: Os = TODO()
 
-    override fun provide(marker: NamedAutoTypedMarker<out Os>): Os {
+    override fun provide(marker: AutoTypedMarker<out Os>): Os {
         TODO()
     }
 }
@@ -58,7 +58,7 @@ class MockProvider : OsProvider {
     override val native: Os
         get() = TODO("Not yet implemented")
 
-    override fun provide(marker: NamedAutoTypedMarker<out Os>): Os {
+    override fun provide(marker: AutoTypedMarker<out Os>): Os {
         TODO("Not yet implemented")
     }
 }

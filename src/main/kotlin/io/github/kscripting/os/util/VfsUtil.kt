@@ -3,13 +3,12 @@ package io.github.kscripting.os.util
 import io.github.kscripting.os.Vfs
 import io.github.kscripting.os.instance.CygwinVfs
 import io.github.kscripting.os.instance.HostedVfs
-import io.github.kscripting.os.instance.WindowsVfs
 import io.github.kscripting.os.model.OsPath
 import io.github.kscripting.os.model.startsWith
 
 
 fun createPosixOsPath(vfs: Vfs, path: String): OsPath {
-    require(vfs.isValid(path))
+    vfs.isValid(path).getOrThrow()
 
     //Detect root
     val root: String = when {
@@ -24,14 +23,11 @@ fun createPosixOsPath(vfs: Vfs, path: String): OsPath {
 fun createFinalPath(vfs: Vfs, path: String, root: String): OsPath {
     //Remove also empty path parts - there were duplicated or trailing slashes / backslashes in initial path
     val pathWithoutRoot = path.drop(root.length)
-
-    require(vfs.isValid(pathWithoutRoot))
-
     val pathPartsResolved = pathWithoutRoot.split('/', '\\').filter { it.isNotBlank() }
     return OsPath(vfs, root, normalize(root, pathPartsResolved))
 }
 
-fun <T: HostedVfs> toHostedConverter(vfs: T, osPath: OsPath): OsPath {
+fun <T : HostedVfs> toHostedConverter(vfs: T, osPath: OsPath): OsPath {
     val newParts = mutableListOf<String>()
     var newRoot = ""
 

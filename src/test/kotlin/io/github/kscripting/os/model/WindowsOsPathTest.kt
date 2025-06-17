@@ -110,11 +110,11 @@ class WindowsOsPathTest {
     fun `Test invalid Windows paths`() {
         assertFailure { windowsVfs.createOsPath("C:\\adas?df") }
             .isInstanceOf(IllegalArgumentException::class.java)
-            .hasMessage("Invalid character '?' in path part 'adas?df'")
+            .hasMessage("Invalid character '?' in path 'C:\\adas?df'")
 
         assertFailure { windowsVfs.createOsPath("home:\\vagrant") }
             .isInstanceOf(IllegalArgumentException::class.java)
-            .hasMessage("Invalid character ':' in path part 'home:'")
+            .hasMessage("Invalid character ':' in path 'home:\\vagrant'")
     }
 
     @Test

@@ -21,5 +21,5 @@ interface Vfs {
     fun createOsPath(vararg pathParts: String): OsPath =
         createOsPath(pathParts.joinToString("/"))
 
-    fun isValid(path: String): Boolean
+    fun isValid(path: String): Result<Unit>
 }

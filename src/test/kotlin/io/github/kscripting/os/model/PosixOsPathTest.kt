@@ -107,8 +107,8 @@ class PosixOsPathTest {
     @Test
     fun `Test invalid Posix paths`() {
         assertFailure {
-            linuxVfs.createOsPath("/ad*asdf")
-        }.isInstanceOf(IllegalArgumentException::class.java).hasMessage("Invalid character '*' in path part 'ad*asdf'")
+            linuxVfs.createOsPath("/ad\u0000asdf")
+        }.isInstanceOf(IllegalArgumentException::class.java).hasMessage("Invalid character '\u0000' in path '/ad\u0000asdf'")
     }
 
     @Test
