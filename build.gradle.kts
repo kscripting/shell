@@ -9,12 +9,12 @@ plugins {
     id("com.vanniktech.maven.publish") version "0.33.0"
 }
 
+group = "io.github.kscripting"
+version = "0.6.0"
+
 repositories {
     mavenCentral()
 }
-
-group = "io.github.kscripting"
-version = "0.6.0"
 
 kotlin {
     jvmToolchain(17)
@@ -38,8 +38,6 @@ tasks.test {
 // NOTE: deploying snapshots is complicated with this plugin
 // It is better to use repository with the staging version of artifact to test it
 mavenPublishing {
-    coordinates(project.group.toString(), project.name, project.version.toString())
-
     pom {
         name.set("shell")
         description.set("Shell - library for interoperability with different system shells")
@@ -64,9 +62,7 @@ mavenPublishing {
             url.set("https://github.com/kscripting/shell")
         }
     }
-}
 
-mavenPublishing {
     publishToMavenCentral()
     signAllPublications()
 }
@@ -74,14 +70,13 @@ mavenPublishing {
 dependencies {
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlinVersion")
     implementation("org.jetbrains.kotlin:kotlin-reflect:$kotlinVersion")
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.10.2")
-
     implementation("org.jetbrains.kotlin:kotlin-scripting-common:$kotlinVersion")
     implementation("org.jetbrains.kotlin:kotlin-scripting-jvm:$kotlinVersion")
     implementation("org.jetbrains.kotlin:kotlin-scripting-dependencies-maven-all:$kotlinVersion")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.10.2")
+
     implementation("io.arrow-kt:arrow-core:2.1.2")
     implementation("org.apache.commons:commons-lang3:3.17.0")
-
     implementation("org.slf4j:slf4j-nop:2.0.17")
 
     val junitVersion = "6.0.0-M1"
@@ -93,6 +88,5 @@ dependencies {
 
     testImplementation("com.willowtreeapps.assertk:assertk-jvm:0.28.1")
     testImplementation("io.mockk:mockk:1.14.4")
-
     testImplementation(kotlin("script-runtime"))
 }
