@@ -1,5 +1,6 @@
 package io.github.kscripting.shell.model
 
+import assertk.assertFailure
 import assertk.assertThat
 import assertk.assertions.*
 import org.junit.jupiter.api.Test
@@ -91,14 +92,14 @@ class OsPathTest {
             it.prop(OsPath::osType).isEqualTo(OsType.LINUX)
         }
 
-        assertThat { OsPath.createOrThrow(OsType.LINUX, "/.kscript/../../") }.isFailure()
+        assertFailure { OsPath.createOrThrow(OsType.LINUX, "/.kscript/../../") }
             .isInstanceOf(IllegalArgumentException::class.java)
             .hasMessage("Path after normalization goes beyond root element: '/.kscript/../../'")
     }
 
     @Test
     fun `Test invalid Linux paths`() {
-        assertThat { OsPath.createOrThrow(OsType.LINUX, "/ad*asdf") }.isFailure()
+        assertFailure { OsPath.createOrThrow(OsType.LINUX, "/ad*asdf") }
             .isInstanceOf(IllegalArgumentException::class.java)
             .hasMessage("Invalid character '*' in path '/ad*asdf'")
     }
@@ -147,15 +148,15 @@ class OsPathTest {
                 .stringPath()
         ).isEqualTo("./.kscript")
 
-        assertThat {
+        assertFailure {
             OsPath.createOrThrow(OsType.LINUX, "./home/admin").resolve(OsPath.createOrThrow(OsType.WINDOWS, ".\\run"))
-        }.isFailure()
+        }
             .isInstanceOf(IllegalArgumentException::class.java)
             .hasMessage("Paths from different OS's: 'LINUX' path can not be resolved with 'WINDOWS' path")
 
-        assertThat {
+        assertFailure {
             OsPath.createOrThrow(OsType.LINUX, "./home/admin").resolve(OsPath.createOrThrow(OsType.LINUX, "/run"))
-        }.isFailure()
+        }
             .isInstanceOf(IllegalArgumentException::class.java)
             .hasMessage("Can not resolve absolute, relative or undefined path './home/admin' using absolute path '/run'")
     }
@@ -247,18 +248,18 @@ class OsPathTest {
             it.prop(OsPath::osType).isEqualTo(OsType.WINDOWS)
         }
 
-        assertThat { OsPath.createOrThrow(OsType.WINDOWS, "C:\\.kscript\\..\\..\\") }.isFailure()
+        assertFailure { OsPath.createOrThrow(OsType.WINDOWS, "C:\\.kscript\\..\\..\\") }
             .isInstanceOf(IllegalArgumentException::class.java)
             .hasMessage("Path after normalization goes beyond root element: 'C:\\.kscript\\..\\..\\'")
     }
 
     @Test
     fun `Test invalid Windows paths`() {
-        assertThat { OsPath.createOrThrow(OsType.WINDOWS, "C:\\adas?df") }.isFailure()
+        assertFailure { OsPath.createOrThrow(OsType.WINDOWS, "C:\\adas?df") }
             .isInstanceOf(IllegalArgumentException::class.java)
             .hasMessage("Invalid character '?' in path 'C:\\adas?df'")
 
-        assertThat { OsPath.createOrThrow(OsType.WINDOWS, "home:\\vagrant") }.isFailure()
+        assertFailure { OsPath.createOrThrow(OsType.WINDOWS, "home:\\vagrant") }
             .isInstanceOf(IllegalArgumentException::class.java)
             .hasMessage("Invalid character ':' in path 'home:\\vagrant'")
     }

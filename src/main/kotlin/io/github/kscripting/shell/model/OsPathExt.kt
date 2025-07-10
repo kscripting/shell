@@ -30,6 +30,10 @@ fun OsPath.toNativeFile(): File = toNativePath().toFile()
 
 // OsPath operations
 
+operator fun OsPath.div(osPath: OsPath): OsPath = resolve(osPath)
+
+operator fun OsPath.div(path: String): OsPath = resolve(path)
+
 fun OsPath.exists() = toNativePath().exists()
 
 fun OsPath.createDirectories(): OsPath = OsPath.createOrThrow(nativeType, toNativePath().createDirectories().pathString)
