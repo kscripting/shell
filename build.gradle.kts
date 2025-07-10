@@ -1,8 +1,10 @@
-val kotlinVersion: String = "1.7.21"
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+
+val kotlinVersion: String = "2.1.21"
 
 plugins {
-    kotlin("jvm") version "1.7.21"
-    id("com.adarshr.test-logger") version "3.2.0"
+    kotlin("jvm") version "2.1.21"
+    id("com.adarshr.test-logger") version "4.0.0"
     `maven-publish`
     signing
 }
@@ -12,7 +14,7 @@ repositories {
 }
 
 group = "io.github.kscripting"
-version = "0.5.2"
+version = "0.6.0-SNAPSHOT"
 
 sourceSets {
     create("integration") {
@@ -30,22 +32,23 @@ configurations {
     get("integrationImplementation").apply { extendsFrom(get("testImplementation")) }
 }
 
-java {
-    toolchain {
-        languageVersion.set(JavaLanguageVersion.of(8))
-    }
+kotlin {
+    jvmToolchain(17)
+}
 
+tasks.withType<KotlinCompile>().all {
+    compilerOptions {
+        freeCompilerArgs.add("-Xcontext-parameters")
+    }
+}
+
+
+java {
     withJavadocJar()
     withSourcesJar()
 }
 
-tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().all {
-    kotlinOptions {
-        jvmTarget = "1.8"
-    }
-}
-
-tasks.create<Test>("integration") {
+tasks.register<Test>("integration") {
     val itags = System.getProperty("includeTags") ?: ""
     val etags = System.getProperty("excludeTags") ?: ""
 
@@ -77,7 +80,7 @@ tasks.create<Test>("integration") {
     }
 }
 
-tasks.create<Task>("printIntegrationClasspath") {
+tasks.register<Task>("printIntegrationClasspath") {
     doLast {
         println(sourceSets["integration"].runtimeClasspath.asPath)
     }
@@ -146,23 +149,24 @@ signing {
 dependencies {
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlinVersion")
     implementation("org.jetbrains.kotlin:kotlin-reflect:$kotlinVersion")
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.4")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.10.2")
 
     implementation("org.jetbrains.kotlin:kotlin-scripting-common:$kotlinVersion")
     implementation("org.jetbrains.kotlin:kotlin-scripting-jvm:$kotlinVersion")
     implementation("org.jetbrains.kotlin:kotlin-scripting-dependencies-maven-all:$kotlinVersion")
-    implementation("io.arrow-kt:arrow-core:1.1.2")
-    implementation("org.apache.commons:commons-lang3:3.12.0")
+    implementation("io.arrow-kt:arrow-core:2.1.2")
+    implementation("org.apache.commons:commons-lang3:3.17.0")
 
-    implementation("org.slf4j:slf4j-nop:2.0.4")
+    implementation("org.slf4j:slf4j-nop:2.0.17")
 
-    testImplementation("org.junit.platform:junit-platform-suite-engine:1.9.0")
-    testImplementation("org.junit.platform:junit-platform-suite-api:1.9.0")
-    testImplementation("org.junit.platform:junit-platform-suite-commons:1.9.0")
-    testImplementation("org.junit.jupiter:junit-jupiter-engine:5.9.0")
-    testImplementation("org.junit.jupiter:junit-jupiter-params:5.9.0")
-    testImplementation("com.willowtreeapps.assertk:assertk-jvm:0.25")
-    testImplementation("io.mockk:mockk:1.13.2")
+    val junitVersion = "6.0.0-M1"
+    testImplementation("org.junit.platform:junit-platform-suite-engine:$junitVersion")
+    testImplementation("org.junit.platform:junit-platform-suite-api:$junitVersion")
+    testImplementation("org.junit.platform:junit-platform-suite-commons:$junitVersion")
+    testImplementation("org.junit.jupiter:junit-jupiter-engine:$junitVersion")
+    testImplementation("org.junit.jupiter:junit-jupiter-params:$junitVersion")
+    testImplementation("com.willowtreeapps.assertk:assertk-jvm:0.28.1")
+    testImplementation("io.mockk:mockk:1.14.4")
 
     testImplementation(kotlin("script-runtime"))
 }
